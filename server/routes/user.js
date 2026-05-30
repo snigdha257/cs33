@@ -21,6 +21,11 @@ const {
 
 // Public read
 router.get('/leaderboard', (req, res, next) => { getLeaderboard(req, res, next); });
+
+// Auth-gated - saved FAQs (must come before /:idOrUsername)
+router.get('/saved',          isAuthenticated, getSavedFAQs);
+
+// Public read - profile by username
 router.get('/:idOrUsername', optionalAuth, getProfile);
 
 // Auth-gated profile & password
@@ -33,11 +38,9 @@ router.delete('/:id/follow',  isAuthenticated, unfollowUser);
 
 // Saved FAQs
 router.post('/saved/:faqId',  isAuthenticated, saveFAQ);
-router.get('/saved',          isAuthenticated, getSavedFAQs);
 
 // Activity & content
 router.get('/feed/activity',             isAuthenticated, getActivityFeed);
-router.get('/leaderboard', (req, res, next) => { console.log('[ROUTE] /leaderboard hit'); getLeaderboard(req, res, next); });
 router.get('/:idOrUsername/activity',    getUserActivity);
 router.get('/:idOrUsername/answers',     getUserAnswers);
 

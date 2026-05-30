@@ -23,7 +23,8 @@ const markRead = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    if (id === 'all') {
+    // Handle mark all - when route is /read/all, id will be undefined
+    if (!id || id === 'all') {
       await Notification.updateMany({ recipient: req.user._id }, { isRead: true });
     } else {
       const notification = await Notification.findOne({ _id: id, recipient: req.user._id });

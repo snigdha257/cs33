@@ -35,11 +35,16 @@ const getAll = async (req, res, next) => {
 
     const query = {};
 
-    // Admins/mods can filter by any status; regular users only see approved
+    // Admins/mods can filter by any status; regular users see approved + pending
     if (req.query.status) {
       query.status = req.query.status;
     } else if (!req.user || req.user.role === 'user') {
-      query.status = 'approved';
+      // Show approved and pending FAQs (not rejected or flagged)
+      if (req.user) {
+        query.status = { $in: ['approved', 'pending'] };
+      } else {
+        query.status = 'approved';
+      }
     }
 
     if (search) {
@@ -136,9 +141,23 @@ const getOne = async (req, res, next) => {
     if (conditions.length === 0) {
       return next(new AppError('Invalid FAQ identifier', 400));
     }
-    const query = conditions.length === 1 ? conditions[0] : { $or: conditions };
+    
+    const idCondition = conditions.length === 1 ? conditions[0] : { $or: conditions };
+    
+    // Add status filter for regular users
+    let query = idCondition;
     if (!req.user || req.user.role === 'user') {
-      query.status = 'approved';
+      if (req.user) {
+        // Show approved and pending FAQs
+        query = {
+          $and: [
+            idCondition,
+            { status: { $in: ['approved', 'pending'] } }
+          ]
+        };
+      } else {
+        query = { ...idCondition, status: 'approved' };
+      }
     }
 
     const faq = await FAQ.findOne(query)

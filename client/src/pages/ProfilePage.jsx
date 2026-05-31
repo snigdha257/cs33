@@ -252,26 +252,29 @@ const ProfilePage = () => {
             ) : tab === 'questions' && (
               <div className="space-y-3">
                 {tabData.length === 0 && <p className="text-[var(--text-muted)] text-center py-10 text-sm">No questions yet</p>}
-                {tabData.map((faq, idx) => (
-                  <Link key={faq._id ?? faq.id ?? `q-${idx}`} to={`/faqs/${faq?._id || faq.id || ""}`}
-                    className="flex items-center justify-between gap-4 p-4 border border-[var(--border)] rounded-xl hover:border-[var(--primary)] hover:bg-[var(--primary)]/10/30 transition-all group">
-                    <div className="min-w-0">
-                      <p className="font-medium text-[var(--text-h)] group-hover:text-[var(--primary)] transition-colors line-clamp-1">{faq.question}</p>
-                      <div className="flex items-center gap-3 mt-1.5 text-xs text-[var(--text-muted)]">
-                        <span className="flex items-center gap-1"><ThumbsUp size={11} /> {faq.votes || 0}</span>
-                        <span className="flex items-center gap-1"><MessageSquare size={11} /> {faq.answerCount || faq.answers?.length || 0}</span>
-                        {faq.category && <span className="capitalize">in {faq.category}</span>}
-                        {faq.status && faq.status !== 'approved' && (
-                          <span className={`px-1.5 py-0.5 text-xs rounded-full capitalize ${
-                            faq.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                            faq.status === 'closed'   ? 'bg-[var(--error)]/10 text-[var(--error)]' : 'bg-[var(--surface)] text-[var(--text-muted)]'
-                          }`}>{faq.status}</span>
-                        )}
+                {tabData.filter((item) => item.type === 'faq_created').map((item) => {
+                  const faq = item.faq || {};
+                  return (
+                    <Link key={faq._id || `q-${item._id}`} to={`/faqs/${faq._id || ''}`}
+                      className="flex items-center justify-between gap-4 p-4 border border-[var(--border)] rounded-xl hover:border-[var(--primary)] hover:bg-[var(--primary)]/10/30 transition-all group">
+                      <div className="min-w-0">
+                        <p className="font-medium text-[var(--text-h)] group-hover:text-[var(--primary)] transition-colors line-clamp-1">{faq.question || '(No title)'}</p>
+                        <div className="flex items-center gap-3 mt-1.5 text-xs text-[var(--text-muted)]">
+                          <span className="flex items-center gap-1"><ThumbsUp size={11} /> {faq.votes || 0}</span>
+                          <span className="flex items-center gap-1"><MessageSquare size={11} /> {faq.answerCount || 0}</span>
+                          {faq.category && <span className="capitalize">in {faq.category}</span>}
+                          {faq.status && faq.status !== 'approved' && (
+                            <span className={`px-1.5 py-0.5 text-xs rounded-full capitalize ${
+                              faq.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                              faq.status === 'closed' ? 'bg-[var(--error)]/10 text-[var(--error)]' : 'bg-[var(--surface)] text-[var(--text-muted)]'
+                            }`}>{faq.status}</span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    {faq.isPinned && <span className="text-xs text-[var(--primary)] font-medium flex-shrink-0">📌 Pinned</span>}
-                  </Link>
-                ))}
+                      {faq.isPinned && <span className="text-xs text-[var(--primary)] font-medium flex-shrink-0">📌 Pinned</span>}
+                    </Link>
+                  );
+                })}
               </div>
             )}
 

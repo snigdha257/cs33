@@ -222,7 +222,7 @@ const getUserAnswers = async (req, res, next) => {
 
     const faqs = await FAQ.find(
       { 'answers.author': user._id, status: 'approved' },
-      { question: 1, answers: 1 }
+      { question: 1, answers: 1, votes: 1, answerCount: 1 }
     )
       .sort({ createdAt: -1 })
       .populate('answers.author', 'name avatar reputation');
@@ -236,7 +236,7 @@ const getUserAnswers = async (req, res, next) => {
           votes: a.votes,
           isAccepted: a.isAccepted,
           createdAt: a.createdAt,
-          faq: { _id: f._id, question: f.question },
+          faq: { _id: f._id, question: f.question, votes: f.votes, answerCount: f.answerCount },
           author: a.author,
         }))
     );
@@ -256,7 +256,10 @@ const getUserActivity = async (req, res, next) => {
     if (!user) return next(new AppError('User not found', 404));
 
     const [faqs, answers] = await Promise.all([
-      FAQ.find({ author: user._id }).sort({ createdAt: -1 }).limit(20).select('question createdAt'),
+      FAQ.find({ author: user._id })
+        .sort({ createdAt: -1 })
+        .limit(20)
+        .select('question votes answerCount category status createdAt'),
       FAQ.find({ 'answers.author': user._id, status: 'approved' })
         .sort({ 'answers.createdAt': -1 })
         .limit(20)
@@ -268,7 +271,14 @@ const getUserActivity = async (req, res, next) => {
         type: 'faq_created',
         icon: '❓',
         text: 'asked a new question',
-        faq: { _id: f._id, question: f.question },
+        faq: {
+          _id: f._id,
+          question: f.question,
+          votes: f.votes,
+          answerCount: f.answerCount,
+          category: f.category,
+          status: f.status,
+        },
         createdAt: f.createdAt,
       })),
       ...answers.flatMap((f) =>

@@ -178,11 +178,16 @@ const getSavedFAQs = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .select('question tags votes createdAt author views answers category answerCount isAccepted status');
 
-    // Populate author and category for proper display
-    await FAQ.populate(faqs, [
-      { path: 'author', select: 'name avatar' },
-      { path: 'category', select: 'name slug color' },
-    ]);
+    // Populate author and category for proper display; skip category if invalid refs exist
+    try {
+      await FAQ.populate(faqs, [
+        { path: 'author', select: 'name avatar' },
+        { path: 'category', select: 'name slug color' },
+      ]);
+    } catch (popErr) {
+      // Corrupt category refs in some FAQs — proceed without category population
+      console.error('[getSavedFAQs] populate warning:', popErr.message);
+    }
 
     return res.json({ success: true, data: faqs });
   } catch (err) {

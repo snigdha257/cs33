@@ -55,7 +55,7 @@ const LeaderboardPage = () => {
                 className={`relative rounded-2xl border p-5 mb-4 ${MEDAL[i].bg} ${MEDAL[i].border}`}>
                 <div className="flex items-center gap-4">
                   <span className="text-3xl">{MEDAL[i].icon}</span>
-                  <Link to={`/profile/${u._id}`} className="flex items-center gap-3 flex-1 hover:opacity-80 transition-opacity">
+                  <Link to={`/profile/${String(u._id || '')}`} className="flex items-center gap-3 flex-1 hover:opacity-80 transition-opacity">
                     <img
                       src={u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=3b82f6&color=fff&size=48`}
                       alt={u.name} className="w-12 h-12 rounded-full object-cover ring-2 ring-white"
@@ -85,7 +85,7 @@ const LeaderboardPage = () => {
                 const rank = idx + 4;
                 const isMe = user && (u._id === user.id || u._id === user._id);
                 return (
-                  <Link key={u._id} to={`/profile/${u._id}`}
+                  <Link key={u._id} to={`/profile/${String(u._id || '')}`}
                     className={`flex items-center gap-4 px-5 py-3.5 hover:bg-[var(--surface)] transition-colors ${isMe ? 'bg-[var(--primary)]/10' : ''}`}>
                     <span className="w-7 text-center font-mono text-sm font-semibold text-[var(--text)] flex-shrink-0">
                       #{rank}

@@ -41,6 +41,10 @@ const updateRole = async (req, res, next) => {
     if (!role || !validRoles.includes(role)) {
       return next(new AppError(`Role must be one of: ${validRoles.join(', ')}`, 400));
     }
+    // Prevent promoting/demoting to admin
+    if (role === 'admin') {
+      return next(new AppError('Cannot assign admin role', 400));
+    }
 
     const user = await User.findByIdAndUpdate(id, { role }, { new: true, runValidators: true }).select('-passwordHash');
     if (!user) return next(new AppError('User not found', 404));

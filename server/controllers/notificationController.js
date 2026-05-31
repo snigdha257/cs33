@@ -22,17 +22,20 @@ const getAll = async (req, res, next) => {
 const markRead = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const notification = await Notification.findOne({ _id: id, recipient: req.user._id });
+    if (!notification) return next(new AppError('Notification not found', 404));
+    notification.isRead = true;
+    await notification.save();
+    return res.json({ success: true, message: 'Notification marked as read' });
+  } catch (err) {
+    return next(err);
+  }
+};
 
-    if (id === 'all') {
-      await Notification.updateMany({ recipient: req.user._id }, { isRead: true });
-    } else {
-      const notification = await Notification.findOne({ _id: id, recipient: req.user._id });
-      if (!notification) return next(new AppError('Notification not found', 404));
-      notification.isRead = true;
-      await notification.save();
-    }
-
-    return res.json({ success: true, message: 'Notifications marked as read' });
+const markAllRead = async (req, res, next) => {
+  try {
+    await Notification.updateMany({ recipient: req.user._id }, { isRead: true });
+    return res.json({ success: true, message: 'All notifications marked as read' });
   } catch (err) {
     return next(err);
   }
@@ -55,4 +58,4 @@ const deleteOne = async (req, res, next) => {
   }
 };
 
-module.exports = { getAll, markRead, deleteOne };
+module.exports = { getAll, markRead, markAllRead, deleteOne };

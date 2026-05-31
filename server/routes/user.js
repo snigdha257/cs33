@@ -21,7 +21,7 @@ const {
 
 // Saved FAQs (must be before /:idOrUsername to avoid wildcard match)
 router.post('/saved/:faqId',  isAuthenticated, saveFAQ);
-router.get('/saved',          isAuthenticated, getSavedFAQs);
+router.get('/saved', isAuthenticated, getSavedFAQs);
 
 // Auth-gated profile & password
 router.put('/:id/profile',   isAuthenticated, updateProfileRules, updateProfile);

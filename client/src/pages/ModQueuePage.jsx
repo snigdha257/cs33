@@ -159,7 +159,7 @@ const FAQRow = ({ faq, onApprove, onReject, variant = 'pending' }) => {
       <div className="bg-white border border-[var(--border)] rounded-xl p-4 hover:shadow-sm transition-shadow">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <Link to={`/faqs/${faq?._id || ""}`} target="_blank"
+            <Link to={`/faqs/${String(faq._id || '')}`} target="_blank"
               className="font-semibold text-[var(--text-h)] hover:text-[var(--primary)] transition-colors line-clamp-2">
               {faq.question}
             </Link>
@@ -180,7 +180,7 @@ const FAQRow = ({ faq, onApprove, onReject, variant = 'pending' }) => {
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
-            <Link to={`/faqs/${faq?._id || ""}`} target="_blank"
+            <Link to={`/faqs/${String(faq._id || '')}`} target="_blank"
               className="p-1.5 text-[var(--text-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-colors"
               title="Preview">
               <Eye size={15} />
@@ -272,7 +272,7 @@ const ReportRow = ({ report, onAction, onDismiss }) => {
 
           <div className="flex flex-col items-end gap-2 flex-shrink-0">
             {report.faqId && (
-              <Link to={`/faqs/${report.faqId || ""}`} target="_blank"
+              <Link to={`/faqs/${String(report.targetId || '')}`} target="_blank"
                 className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-[var(--primary)] bg-[var(--primary)]/10 border border-[var(--primary)] rounded-lg hover:bg-[var(--primary)]/10 transition-colors">
                 <Eye size={13} /> View FAQ
               </Link>

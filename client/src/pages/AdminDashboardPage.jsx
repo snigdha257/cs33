@@ -330,7 +330,7 @@ const AdminDashboardPage = () => {
                       className="p-1.5 text-[var(--text-muted)] hover:bg-[var(--surface)] rounded-lg" title="Close">
                       <XCircle size={15} />
                     </button>
-                    <Link to={`/faqs/${faq?._id || ""}`} target="_blank"
+                    <Link to={`/faqs/${String(faq._id || '')}`} target="_blank"
                       className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-muted)] hover:bg-[var(--surface)] rounded-lg">
                       ↗
                     </Link>
@@ -401,7 +401,6 @@ const AdminDashboardPage = () => {
                           >
                             <option value="user">user</option>
                             <option value="moderator">moderator</option>
-                            <option value="admin">admin</option>
                           </select>
                         </td>
                         <td className="px-6 py-3.5">

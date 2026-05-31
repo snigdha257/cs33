@@ -255,7 +255,7 @@ const ProfilePage = () => {
                 {tabData.filter((item) => item.type === 'faq_created').map((item) => {
                   const faq = item.faq || {};
                   return (
-                    <Link key={faq._id || `q-${item._id}`} to={`/faqs/${faq._id || ''}`}
+                    <Link key={faq._id || `q-${item._id}`} to={`/faqs/${String(faq._id || '')}`}
                       className="flex items-center justify-between gap-4 p-4 border border-[var(--border)] rounded-xl hover:border-[var(--primary)] hover:bg-[var(--primary)]/10/30 transition-all group">
                       <div className="min-w-0">
                         <p className="font-medium text-[var(--text-h)] group-hover:text-[var(--primary)] transition-colors line-clamp-1">{faq.question || '(No title)'}</p>
@@ -282,7 +282,7 @@ const ProfilePage = () => {
               <div className="space-y-3">
                 {tabData.length === 0 && <p className="text-[var(--text-muted)] text-center py-10 text-sm">No answers yet</p>}
                 {tabData.map((ans, idx) => (
-                  <Link key={ans._id ?? ans.id ?? `a-${idx}`} to={`/faqs/${ans.faq?._id || ans.faq?.id || ""}`}
+                  <Link key={ans._id ?? ans.id ?? `a-${idx}`} to={`/faqs/${String(ans.faq?._id || '')}`}
                     className="block p-4 border border-[var(--border)] rounded-xl hover:border-[var(--primary)] hover:bg-[var(--primary)]/10/30 transition-all group">
                     <p className="font-medium text-[var(--text-h)] group-hover:text-[var(--primary)] transition-colors line-clamp-2">
                       {ans.faq?.question || 'FAQ #' + (ans.faq?._id || ans.faq)}

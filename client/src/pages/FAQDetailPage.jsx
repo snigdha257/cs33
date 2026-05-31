@@ -207,6 +207,15 @@ const FAQDetailPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { socket } = useSocket();
+  console.log('[DEBUG] id from useParams:', id, typeof id);
+
+  // Guard: redirect to list if id is not a valid string
+  useEffect(() => {
+    if (id && (typeof id !== 'string' || id.length < 10)) {
+      console.warn('[FAQDetailPage] Invalid id, redirecting:', id);
+      navigate('/faqs', { replace: true });
+    }
+  }, [id, navigate]);
 
   const [faq, setFaq] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -223,10 +232,13 @@ const FAQDetailPage = () => {
   const isSubmittingRef = useRef(false);
 
   // Socket setup — reuse shared context socket
-  useEffect(() => {
-    if (!id || !socket) return;
+  // Guard: ensure id is always a valid string before using it
+  const safeId = typeof id === 'string' && id.length > 0 ? id : null;
 
-    socket.emit('faq:join', id);
+  useEffect(() => {
+    if (!safeId || !socket) return;
+
+    socket.emit('faq:join', safeId);
 
     let isMounted = true;
 
@@ -281,8 +293,12 @@ const FAQDetailPage = () => {
   useEffect(() => {
     if (!id) return;
     const fetchFAQ = async () => {
+      if (!safeId) { setError('Invalid FAQ ID'); setLoading(false); return; }
       try {
-        const res = await faqs.getOne(id);
+        console.log('[DEBUG] fetchFAQ called with id:', safeId);
+        const res = await faqs.getOne(safeId);
+        console.log('[DEBUG] getOne raw res.data:', JSON.stringify(res.data).slice(0, 200));
+        console.log('[DEBUG] res.data.data._id:', res.data?.data?._id);
         setFaq(res.data.data);
       } catch (err) {
         setError(err.message || 'Failed to load FAQ');
@@ -291,7 +307,7 @@ const FAQDetailPage = () => {
       }
     };
     fetchFAQ();
-  }, [id]);
+  }, [safeId]);
 
   const canEdit = user && faq && (
     faq.author?._id === user.id ||
@@ -437,6 +453,7 @@ const FAQDetailPage = () => {
     setSubmittingAnswer(true);
     let isMounted = true;
     try {
+      console.log('[DEBUG] addAnswer called, faq._id:', faq._id);
       const res = await faqs.addAnswer(faq._id, { body: answerBody.trim() });
       if (!isMounted) return;
       const newAnswer = res.data.data;
@@ -554,7 +571,7 @@ const FAQDetailPage = () => {
                 </button>
                 {canEdit && (
                   <>
-                    <Link to={`/faqs/${faq?._id || ""}/edit`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--border)] text-[var(--text-muted)] text-sm hover:bg-[var(--surface)] transition-colors">
+                    <Link to={`/faqs/${String(faq?._id || '')}/edit`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--border)] text-[var(--text-muted)] text-sm hover:bg-[var(--surface)] transition-colors">
                       <Edit2 size={14} /> Edit
                     </Link>
                     <button onClick={() => { if (confirm('Delete this FAQ?')) navigate(`/faqs`); }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--error)]/30 text-[var(--error)] text-sm hover:bg-[var(--error)]/10 transition-colors">
@@ -659,7 +676,7 @@ const FAQDetailPage = () => {
             <h3 className="font-semibold text-[var(--text)] mb-3 text-sm">Related FAQs</h3>
             <div className="space-y-2">
               {faq.relatedFAQs.map((related) => (
-                <Link key={related._id} to={`/faqs/${related?._id || ""}`}
+                <Link key={related._id} to={`/faqs/${String(related?._id || '')}`}
                   className="block text-sm text-[var(--primary)] hover:text-[var(--primary)] hover:underline line-clamp-2">
                   {related.question}
                 </Link>

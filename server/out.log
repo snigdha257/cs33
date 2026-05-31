@@ -1,1 +1,16 @@
-◇ injected env (15) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (15) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+MongoDB connected: localhost
+Server running on port 5000
+Socket connected: user 6a1975899a7ff82bcdcaa497 (Admin User)
+Socket disconnected: user 6a1975899a7ff82bcdcaa497
+Socket connected: user 6a1975899a7ff82bcdcaa497 (Admin User)
+Socket disconnected: user 6a1975899a7ff82bcdcaa497
+Socket connected: user 6a1975899a7ff82bcdcaa497 (Admin User)
+[DEBUG] getLeaderboard called for path: /api/users/leaderboard
+[DEBUG] getLeaderboard called for path: /api/users/leaderboard
+Socket connected: user 6a1975899a7ff82bcdcaa497 (Admin User)
+Socket disconnected: user 6a1975899a7ff82bcdcaa497
+Socket connected: user 6a1975899a7ff82bcdcaa497 (Admin User)
+Socket disconnected: user 6a1975899a7ff82bcdcaa497
+[DEBUG] getLeaderboard called for path: /api/users/leaderboard
+[DEBUG] getLeaderboard called for path: /api/users/leaderboard

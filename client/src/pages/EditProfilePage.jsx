@@ -30,7 +30,7 @@ const EditProfilePage = () => {
   const [notifyOnAnswer,  setNotifyOnAnswer]  = useState(true);
   const [notifyOnComment, setNotifyOnComment] = useState(true);
   const [passwords, setPasswords] = useState({ current: '', newPw: '', confirm: '' });
-  const [showPw, setShowPw] = useState({ current: false, new: false, confirm: false });
+  const [showPw, setShowPw] = useState({ current: false, newPw: false, confirm: false });
   const [submitting, setSubmitting] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
@@ -81,7 +81,7 @@ const EditProfilePage = () => {
         notifyOnAnswer,
         notifyOnComment,
       });
-      updateUser(res.data);
+      updateUser(res.data.data);
       toast.success('Profile updated!');
       navigate(`/profile/${user.id}`);
     } catch (err) {

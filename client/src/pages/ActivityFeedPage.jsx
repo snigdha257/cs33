@@ -37,7 +37,7 @@ const SuggestedUsers = ({ onFollow }) => {
       <div className="space-y-3">
         {list.map((u) => (
           <div key={u._id} className="flex items-center justify-between gap-3">
-            <Link to={`/profile/${u._id}`} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+            <Link to={`/profile/${String(u._id || '')}`} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
               <img
                 src={u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=3b82f6&color=fff&size=32`}
                 alt={u.name} className="w-8 h-8 rounded-full object-cover"
@@ -141,7 +141,7 @@ const ActivityFeedPage = () => {
                 <div key={faq._id}
                   className="bg-[var(--card-bg)] rounded-xl border border-[var(--border)] p-4 hover:shadow-sm transition-shadow">
                   <div className="flex items-start gap-3">
-                    <Link to={`/profile/${faq.author?._id}`} className="flex-shrink-0 hover:opacity-80 transition-opacity">
+                    <Link to={`/profile/${String(faq.author?._id || '')}`} className="flex-shrink-0 hover:opacity-80 transition-opacity">
                       <img
                         src={faq.author?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(faq.author?.name || 'U')}&background=3b82f6&color=fff&size=36`}
                         alt={faq.author?.name || 'User'}
@@ -150,7 +150,7 @@ const ActivityFeedPage = () => {
                     </Link>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <Link to={`/profile/${faq.author?._id}`}
+                        <Link to={`/profile/${String(faq.author?._id || '')}`}
                           className="text-xs font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
                           {faq.author?.name || 'Unknown'}
                         </Link>
@@ -159,7 +159,7 @@ const ActivityFeedPage = () => {
                           {faq.createdAt ? format(new Date(faq.createdAt), { locale: 'en' }) : ''}
                         </span>
                       </div>
-                      <Link to={`/faqs/${faq?._id || ""}`}
+                      <Link to={`/faqs/${String(faq._id || '')}`}
                         className="block text-sm font-semibold text-[var(--text-h)] hover:text-[var(--primary)] transition-colors line-clamp-2">
                         {faq.question}
                       </Link>

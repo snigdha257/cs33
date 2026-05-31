@@ -20,6 +20,7 @@ const getAll = async (req, res, next) => {
   try {
     const {
       search,
+      searchFields, // 'question' | 'question+body' | 'all'
       tag,
       category,
       sort,
@@ -30,7 +31,7 @@ const getAll = async (req, res, next) => {
     const page  = Math.max(1,  parseInt(rawPage,  10) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(rawLimit, 10) || 10));
 
-    const SORT_WHITELIST = ['newest', 'votes', 'views', 'unanswered'];
+    const SORT_WHITELIST = ['newest', 'oldest', 'votes', 'views', 'unanswered', 'relevance', 'recently_updated'];
     const safeSort = SORT_WHITELIST.includes(sort) ? sort : 'newest';
 
     const query = {};
@@ -38,12 +39,15 @@ const getAll = async (req, res, next) => {
     // Admins/mods can filter by any status; regular users only see approved
     if (req.query.status) {
       query.status = req.query.status;
-    } else if (!req.user || req.user.role === 'user') {
+    } else if (req.user && req.user.role === 'user') {
+      // Show approved FAQs + user's own pending ones
+      query.$or = [
+        { status: 'approved' },
+        { status: 'pending', author: req.user._id },
+      ];
+    } else if (!req.user) {
+      // Unauthenticated — only approved
       query.status = 'approved';
-    }
-
-    if (search) {
-      query.$text = { $search: search };
     }
 
     if (tag) {
@@ -54,18 +58,76 @@ const getAll = async (req, res, next) => {
       query.category = category.toLowerCase().trim();
     }
 
+    // ── Helper: escape regex special chars ────────────────────────
+    const escaped = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // ── Search logic ─────────────────────────────────────────────
+    let hasTextIndex = false;
+    if (search && search.trim().length >= 2) {
+      const trimmedSearch = search.trim();
+
+      if (searchFields === 'question') {
+        // Regex-only search on question field
+        query.question = { $regex: escaped(trimmedSearch), $options: 'i' };
+      } else if (searchFields === 'all') {
+        // Regex search across question + body + tags
+        query.$or = [
+          { question: { $regex: escaped(trimmedSearch), $options: 'i' } },
+          { body:     { $regex: escaped(trimmedSearch), $options: 'i' } },
+          { tags:     { $regex: escaped(trimmedSearch), $options: 'i' } },
+        ];
+      } else {
+        // Default: 'question+body' — try text index first, fall back to regex on question+body
+        try {
+          await FAQ.paginate(
+            { $text: { $search: trimmedSearch }, ...query },
+            { page: 1, limit: 1, select: { score: { $meta: 'textScore' } } }
+          );
+          hasTextIndex = true;
+        } catch {
+          hasTextIndex = false;
+        }
+
+        if (hasTextIndex) {
+          query.$text = { $search: trimmedSearch };
+        } else {
+          query.$or = [
+            { question: { $regex: escaped(trimmedSearch), $options: 'i' } },
+            { body:     { $regex: escaped(trimmedSearch), $options: 'i' } },
+          ];
+        }
+      }
+    }
+
+    // ── Sort ─────────────────────────────────────────────────────
     let sortOption = { createdAt: -1 };
     let projection = null;
 
-    if (search) {
-      sortOption = { score: { $meta: 'textScore' }, createdAt: -1 };
+    if (search && (hasTextIndex || searchFields !== 'question')) {
+      // Combine text-score with other sort options
+      const secondarySort = safeSort === 'oldest' ? { createdAt: 1 } :
+                            safeSort === 'recently_updated' ? { updatedAt: -1 } :
+                            safeSort === 'votes' ? { votes: -1 } :
+                            safeSort === 'views' ? { views: -1 } :
+                            { createdAt: -1 };
+      sortOption = safeSort === 'relevance'
+        ? { score: { $meta: 'textScore' }, createdAt: -1 }
+        : { ...secondarySort, score: { $meta: 'textScore' } };
       projection = { score: { $meta: 'textScore' } };
+    } else if (safeSort === 'relevance' && !search) {
+      // Relevance without search = pinned first, then recently updated
+      sortOption = { isPinned: -1, updatedAt: -1 };
     } else if (safeSort === 'votes') {
-      sortOption = { votes: -1 };
+      sortOption = { isPinned: -1, votes: -1 };
     } else if (safeSort === 'views') {
-      sortOption = { views: -1 };
+      sortOption = { isPinned: -1, views: -1 };
+    } else if (safeSort === 'oldest') {
+      sortOption = { createdAt: 1 };
+    } else if (safeSort === 'recently_updated') {
+      sortOption = { isPinned: -1, updatedAt: -1 };
     } else if (safeSort === 'unanswered') {
       query.answers = { $size: 0 };
+      sortOption = { isPinned: -1, createdAt: -1 };
     }
 
     const options = {
@@ -74,7 +136,7 @@ const getAll = async (req, res, next) => {
       sort: sortOption,
       projection,
       populate: 'author',
-      select: 'question body tags category status votes views answers comments author slug createdAt isPinned',
+      select: 'question body tags category status votes views answers comments author slug createdAt updatedAt isPinned',
     };
 
     const result = await FAQ.paginate(query, options);
@@ -82,17 +144,43 @@ const getAll = async (req, res, next) => {
     let data = result.docs;
     if (search) {
       const terms = search.toLowerCase().split(/\s+/).filter(Boolean);
+      const searchLower = search.toLowerCase();
       data = data.map((faq) => {
+        const faqObj = faq.toObject ? faq.toObject() : faq;
         let highlights = [];
-        if (faq.body) {
-          const sentences = faq.body.split(/(?<=[.!?])\s+/);
-          highlights = sentences
+
+        // Highlight matching question substring
+        if (faqObj.question) {
+          const qLower = faqObj.question.toLowerCase();
+          if (qLower.includes(searchLower) || terms.some((t) => qLower.includes(t))) {
+            const idx = qLower.indexOf(searchLower.length >= 3 ? searchLower : terms[0] || searchLower);
+            const term = searchLower.length >= 3 ? searchLower : (terms[0] || searchLower);
+            const i = qLower.indexOf(term);
+            const start = Math.max(0, i - 50);
+            const end   = Math.min(faqObj.question.length, i + term.length + 100);
+            highlights.push(
+              (start > 0 ? '\u2026' : '') +
+              faqObj.question.slice(start, end) +
+              (end < faqObj.question.length ? '\u2026' : '')
+            );
+          }
+        }
+
+        // Highlight matching body sentences
+        if (faqObj.body) {
+          const sentences = faqObj.body.split(/(?<=[.!?])\s+/);
+          const bodyMatches = sentences
             .filter((s) => terms.some((t) => s.toLowerCase().includes(t)))
             .slice(0, 2)
-            .map((s) => s.replace(/[#*`_~]/g, '').trim())
+            .map((s) => s.replace(/[#*`_~\[\]()>-]/g, '').trim())
             .filter(Boolean);
+          highlights.push(...bodyMatches);
         }
-        return { ...faq.toObject(), highlights };
+
+        return {
+          ...faqObj,
+          highlights: [...new Set(highlights)].slice(0, 3),
+        };
       });
     }
 
@@ -136,9 +224,19 @@ const getOne = async (req, res, next) => {
     if (conditions.length === 0) {
       return next(new AppError('Invalid FAQ identifier', 400));
     }
-    const query = conditions.length === 1 ? conditions[0] : { $or: conditions };
-    if (!req.user || req.user.role === 'user') {
-      query.status = 'approved';
+    const idOrSlugQuery = conditions.length === 1 ? conditions[0] : { $or: conditions };
+    let query;
+    if (req.user && req.user.role === 'user') {
+      query = {
+        $and: [
+          idOrSlugQuery,
+          { $or: [{ status: 'approved' }, { status: 'pending', author: req.user._id }] },
+        ],
+      };
+    } else if (!req.user) {
+      query = { ...idOrSlugQuery, status: 'approved' };
+    } else {
+      query = idOrSlugQuery;
     }
 
     const faq = await FAQ.findOne(query)

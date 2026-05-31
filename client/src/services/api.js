@@ -6,6 +6,16 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  console.log('[API REQUEST]', config.method?.toUpperCase(), config.url);
+  // Defensive: coerce any ObjectId/object in URL path segments to string
+  if (config.url) {
+    config.url = config.url.replace(/\/([a-f0-9]{24})\b/g, (m, id) => `/${id}`);
+    // Convert any remaining [object Object] in URL
+    if (config.url.includes('[object')) {
+      console.warn('[API] URL contains [object], rejecting:', config.url);
+      return Promise.reject(new axios.Cancel('Invalid URL: [object Object]'));
+    }
+  }
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;

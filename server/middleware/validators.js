@@ -1,4 +1,5 @@
 const { body, param, query, validationResult } = require('express-validator');
+const validator = require('validator');
 const AppError = require('../utils/AppError');
 
 // ── Validation result handler ─────────────────────────────────────────────────
@@ -194,10 +195,7 @@ const updateProfileRules = [
   ObjectIdParam('id'),
   Str255('name', 2, 80),
   Str255('bio', 0, 500),
-  body('avatar')
-    .optional()
-    .isURL()
-    .withMessage('Avatar must be a valid URL'),
+
   isBoolean('notifyOnAnswer'),
   isBoolean('notifyOnComment'),
   validate,

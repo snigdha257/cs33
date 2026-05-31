@@ -123,7 +123,7 @@ const SubmitFAQPage = () => {
     try {
       const res = await faqs.search(q);
       // Filter out near-identical (same slug or very similar question)
-      const similar = ((res.data ?? [])).filter((f) => {
+      const similar = ((res.data.data ?? [])).filter((f) => {
         const sim = f.question?.toLowerCase();
         const current = q.toLowerCase();
         // Show if more than 40% word overlap
@@ -234,7 +234,7 @@ const SubmitFAQPage = () => {
                   {similarFAQs.map((f) => (
                     <div key={f._id} className="flex items-center justify-between gap-2">
                       <a
-                        href={`/faqs/${f._id}`}
+                        href={`/faqs/${String(f._id || '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-[var(--primary)] hover:text-[var(--primary)] hover:underline flex items-center gap-1 flex-1 min-w-0"

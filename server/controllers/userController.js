@@ -60,7 +60,7 @@ const updateProfile = async (req, res, next) => {
     const updates = {};
     if (name) updates.name = name;
     if (bio !== undefined) updates.bio = bio;
-    if (avatar !== undefined) updates.avatar = avatar;
+    if (avatar !== undefined && avatar !== '') updates.avatar = avatar;
     if (notifyOnAnswer !== undefined) updates.notifyOnAnswer = notifyOnAnswer;
     if (notifyOnComment !== undefined) updates.notifyOnComment = notifyOnComment;
 
@@ -176,7 +176,18 @@ const getSavedFAQs = async (req, res, next) => {
   try {
     const faqs = await FAQ.find({ _id: { $in: req.user.savedFAQs }, status: 'approved' })
       .sort({ createdAt: -1 })
-      .select('question tags votes createdAt');
+      .select('question tags votes createdAt author views answers category answerCount isAccepted status');
+
+    // Populate author and category for proper display; skip category if invalid refs exist
+    try {
+      await FAQ.populate(faqs, [
+        { path: 'author', select: 'name avatar' },
+        { path: 'category', select: 'name slug color' },
+      ]);
+    } catch (popErr) {
+      // Corrupt category refs in some FAQs — proceed without category population
+      console.error('[getSavedFAQs] populate warning:', popErr.message);
+    }
 
     return res.json({ success: true, data: faqs });
   } catch (err) {
@@ -216,7 +227,7 @@ const getUserAnswers = async (req, res, next) => {
 
     const faqs = await FAQ.find(
       { 'answers.author': user._id, status: 'approved' },
-      { question: 1, answers: 1 }
+      { question: 1, answers: 1, votes: 1, answerCount: 1 }
     )
       .sort({ createdAt: -1 })
       .populate('answers.author', 'name avatar reputation');
@@ -230,7 +241,7 @@ const getUserAnswers = async (req, res, next) => {
           votes: a.votes,
           isAccepted: a.isAccepted,
           createdAt: a.createdAt,
-          faq: { _id: f._id, question: f.question },
+          faq: { _id: f._id, question: f.question, votes: f.votes, answerCount: f.answerCount },
           author: a.author,
         }))
     );
@@ -250,7 +261,10 @@ const getUserActivity = async (req, res, next) => {
     if (!user) return next(new AppError('User not found', 404));
 
     const [faqs, answers] = await Promise.all([
-      FAQ.find({ author: user._id }).sort({ createdAt: -1 }).limit(20).select('question createdAt'),
+      FAQ.find({ author: user._id })
+        .sort({ createdAt: -1 })
+        .limit(20)
+        .select('question votes answerCount category status createdAt'),
       FAQ.find({ 'answers.author': user._id, status: 'approved' })
         .sort({ 'answers.createdAt': -1 })
         .limit(20)
@@ -262,7 +276,14 @@ const getUserActivity = async (req, res, next) => {
         type: 'faq_created',
         icon: '❓',
         text: 'asked a new question',
-        faq: { _id: f._id, question: f.question },
+        faq: {
+          _id: f._id,
+          question: f.question,
+          votes: f.votes,
+          answerCount: f.answerCount,
+          category: f.category,
+          status: f.status,
+        },
         createdAt: f.createdAt,
       })),
       ...answers.flatMap((f) =>

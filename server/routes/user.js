@@ -19,9 +19,9 @@ const {
   getLeaderboard,
 } = require('../controllers/userController');
 
-// Public read
-router.get('/leaderboard', (req, res, next) => { getLeaderboard(req, res, next); });
-router.get('/:idOrUsername', optionalAuth, getProfile);
+// Saved FAQs (must be before /:idOrUsername to avoid wildcard match)
+router.post('/saved/:faqId',  isAuthenticated, saveFAQ);
+router.get('/saved', isAuthenticated, getSavedFAQs);
 
 // Auth-gated profile & password
 router.put('/:id/profile',   isAuthenticated, updateProfileRules, updateProfile);
@@ -31,9 +31,9 @@ router.put('/:id/password',  isAuthenticated, changePasswordRules, changePasswor
 router.post('/:id/follow',    isAuthenticated, followUser);
 router.delete('/:id/follow',  isAuthenticated, unfollowUser);
 
-// Saved FAQs
-router.post('/saved/:faqId',  isAuthenticated, saveFAQ);
-router.get('/saved',          isAuthenticated, getSavedFAQs);
+// Public read
+router.get('/leaderboard', (req, res, next) => { getLeaderboard(req, res, next); });
+router.get('/:idOrUsername', optionalAuth, getProfile);
 
 // Activity & content
 router.get('/feed/activity',             isAuthenticated, getActivityFeed);

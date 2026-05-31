@@ -12,8 +12,9 @@ const SavedFAQsPage = () => {
   const load = async () => {
     try {
       const res = await users.getSaved();
-      setFaqs((res.data ?? []));
-    } catch {
+      setFaqs(Array.isArray(res.data.data) ? res.data.data : []);
+    } catch (err) {
+      console.error('[SavedFAQs] error:', err.message, err.response?.status, err.response?.data);
       toast.error('Failed to load saved FAQs');
     } finally {
       setLoading(false);
@@ -75,7 +76,7 @@ const SavedFAQsPage = () => {
         ) : (
           <div className="grid gap-4">
             {faqs.map((faq) => {
-              const id = faq._id || faq;
+              const id = faq._id ? String(faq._id) : String(faq || '');
               const question = faq.question || faq;
               const author = faq.author;
               const votes = faq.votes ?? 0;
@@ -92,7 +93,7 @@ const SavedFAQsPage = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                         {author && (
-                          <Link to={`/profile/${author._id}`}
+                          <Link to={`/profile/${String(author?._id || '')}`}
                             className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
                             <img
                               src={author.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(author.name)}&background=3b82f6&color=fff&size=20`}

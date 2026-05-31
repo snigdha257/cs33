@@ -104,7 +104,7 @@ const AdminDashboardPage = () => {
   const loadStats = useCallback(async () => {
     try {
       const res = await admin.getStats();
-      setStats(res.data);
+      setStats(res.data.data || res.data);
     } catch {
       toast.error('Failed to load stats');
     } finally {
@@ -117,7 +117,7 @@ const AdminDashboardPage = () => {
     setUsersLoading(true);
     try {
       const res = await admin.getUsers({ page, limit: 15, search });
-      setUsers(res.data);
+      setUsers(res.data.data);
       setUserTotal(res.data.pagination?.totalItems || 0);
       setUsersPage(page);
     } catch {
@@ -132,7 +132,7 @@ const AdminDashboardPage = () => {
     setPendingLoading(true);
     try {
       const res = await faqs.getAll({ status: 'pending', limit: 50 });
-      setPendingFAQs(res.data.data ?? []);
+      setPendingFAQs(Array.isArray(res.data.data) ? res.data.data : []);
     } catch {
       toast.error('Failed to load pending FAQs');
     } finally {

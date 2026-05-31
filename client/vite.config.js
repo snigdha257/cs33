@@ -9,7 +9,17 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/api': 'http://localhost:5000',
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq, req) => {
+            if (req.headers && req.headers.authorization) {
+              proxyReq.setHeader('authorization', req.headers.authorization);
+            }
+          });
+        },
+      },
     },
   },
 })

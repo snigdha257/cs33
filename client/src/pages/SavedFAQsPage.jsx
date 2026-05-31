@@ -12,8 +12,9 @@ const SavedFAQsPage = () => {
   const load = async () => {
     try {
       const res = await users.getSaved();
-      setFaqs((res.data ?? []));
-    } catch {
+      setFaqs(Array.isArray(res.data.data) ? res.data.data : []);
+    } catch (err) {
+      console.error('[SavedFAQs] error:', err.message, err.response?.status, err.response?.data);
       toast.error('Failed to load saved FAQs');
     } finally {
       setLoading(false);

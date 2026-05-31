@@ -207,6 +207,7 @@ const FAQDetailPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { socket } = useSocket();
+  console.log('[DEBUG] id from useParams:', id);
 
   const [faq, setFaq] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -282,7 +283,10 @@ const FAQDetailPage = () => {
     if (!id) return;
     const fetchFAQ = async () => {
       try {
+        console.log('[DEBUG] fetchFAQ called with id:', id);
         const res = await faqs.getOne(id);
+        console.log('[DEBUG] getOne raw res.data:', JSON.stringify(res.data).slice(0, 200));
+        console.log('[DEBUG] res.data.data._id:', res.data?.data?._id);
         setFaq(res.data.data);
       } catch (err) {
         setError(err.message || 'Failed to load FAQ');
@@ -437,6 +441,7 @@ const FAQDetailPage = () => {
     setSubmittingAnswer(true);
     let isMounted = true;
     try {
+      console.log('[DEBUG] addAnswer called, faq._id:', faq._id);
       const res = await faqs.addAnswer(faq._id, { body: answerBody.trim() });
       if (!isMounted) return;
       const newAnswer = res.data.data;

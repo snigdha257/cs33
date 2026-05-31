@@ -332,7 +332,7 @@ const ModQueuePage = () => {
       ]);
       if (!isMounted) return;
       setPending(pRes.data.data ?? []);
-      setReports(rRes.data ?? []);
+      setReports(rRes.data.data ?? []);
     } catch {
       if (!isMounted) return;
       toast.error('Failed to load queue');

@@ -60,7 +60,7 @@ const updateProfile = async (req, res, next) => {
     const updates = {};
     if (name) updates.name = name;
     if (bio !== undefined) updates.bio = bio;
-    if (avatar !== undefined) updates.avatar = avatar;
+    if (avatar !== undefined && avatar !== '') updates.avatar = avatar;
     if (notifyOnAnswer !== undefined) updates.notifyOnAnswer = notifyOnAnswer;
     if (notifyOnComment !== undefined) updates.notifyOnComment = notifyOnComment;
 
@@ -176,7 +176,13 @@ const getSavedFAQs = async (req, res, next) => {
   try {
     const faqs = await FAQ.find({ _id: { $in: req.user.savedFAQs }, status: 'approved' })
       .sort({ createdAt: -1 })
-      .select('question tags votes createdAt');
+      .select('question tags votes createdAt author views answers category answerCount isAccepted status');
+
+    // Populate author and category for proper display
+    await FAQ.populate(faqs, [
+      { path: 'author', select: 'name avatar' },
+      { path: 'category', select: 'name slug color' },
+    ]);
 
     return res.json({ success: true, data: faqs });
   } catch (err) {

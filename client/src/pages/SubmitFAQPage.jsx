@@ -123,7 +123,7 @@ const SubmitFAQPage = () => {
     try {
       const res = await faqs.search(q);
       // Filter out near-identical (same slug or very similar question)
-      const similar = ((res.data ?? [])).filter((f) => {
+      const similar = ((res.data.data ?? [])).filter((f) => {
         const sim = f.question?.toLowerCase();
         const current = q.toLowerCase();
         // Show if more than 40% word overlap

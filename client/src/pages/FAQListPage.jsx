@@ -85,7 +85,7 @@ const FilterDrawer = ({ open, onClose, category, setCategory, tag, setTag, sort,
         {/* Sort */}
         <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">Sort by</p>
         <div className="flex flex-wrap gap-2">
-          {[['newest', 'Newest'], ['votes', 'Most Voted'], ['views', 'Most Viewed'], ['unanswered', 'Unanswered']].map(([v, label]) => (
+          {[['newest', 'Newest'], ['oldest', 'Oldest'], ['votes', 'Most Voted'], ['views', 'Most Viewed'], ['recently_updated', 'Recently Updated'], ['unanswered', 'Unanswered'], ['relevance', 'Relevance']].map(([v, label]) => (
             <button key={v} onClick={() => { setSort(v); onClose(); }}
               className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
                 sort === v ? 'bg-[var(--primary)] text-white border-[var(--primary)]' : 'bg-[var(--bg)] text-[var(--text)] border-[var(--border)] hover:bg-[var(--surface)]'
@@ -103,6 +103,7 @@ const FAQListPage = () => {
   const { user } = useAuth();
   const [search, setSearch]           = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [searchFields, setSearchFields] = useState('all');
   const [category, setCategory]       = useState('');
   const [tag, setTag]                 = useState('');
   const [sort, setSort]               = useState('newest');
@@ -130,12 +131,15 @@ const FAQListPage = () => {
   const params = useMemo(
     () => {
       const p = { page, limit: 10, sort };
-      if (debouncedSearch) p.search = debouncedSearch;
+      if (debouncedSearch) {
+        p.search = debouncedSearch;
+        if (searchFields !== 'all') p.searchFields = searchFields;
+      }
       if (category)        p.category = category;
       if (tag)             p.tag = tag;
       return p;
     },
-    [page, sort, debouncedSearch, category, tag]
+    [page, sort, debouncedSearch, searchFields, category, tag]
   );
 
   const { data: faqResult, loading, error } = useAsync(
@@ -197,6 +201,17 @@ const FAQListPage = () => {
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 border border-[var(--border)] rounded-lg bg-[var(--bg)] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
           />
+          {debouncedSearch && (
+            <select
+              value={searchFields}
+              onChange={(e) => setSearchFields(e.target.value)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs border border-[var(--border)] rounded px-2 py-1 bg-[var(--surface)] text-[var(--text-muted)] focus:outline-none"
+            >
+              <option value="all">All fields</option>
+              <option value="question">Questions only</option>
+              <option value="question+body">Q + Answer</option>
+            </select>
+          )}
         </div>
 
         {/* Desktop filters — always visible */}
@@ -228,8 +243,13 @@ const FAQListPage = () => {
             <span>Sort by:</span>
             <select value={sort} onChange={(e) => setSort(e.target.value)}
               className="border border-[var(--border)] rounded px-2 py-1 text-sm bg-[var(--bg)] text-[var(--text)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]">
-              <option value="newest">Newest</option><option value="votes">Most Voted</option>
-              <option value="views">Most Viewed</option><option value="unanswered">Unanswered</option>
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="votes">Most Voted</option>
+              <option value="views">Most Viewed</option>
+              <option value="recently_updated">Recently Updated</option>
+              <option value="unanswered">Unanswered</option>
+              <option value="relevance">Relevance</option>
             </select>
           </div>
           {tag && <button onClick={() => setTag('')} className="text-xs text-[var(--primary)] hover:underline">Clear tag ✕</button>}
@@ -245,8 +265,13 @@ const FAQListPage = () => {
           </button>
           <select value={sort} onChange={(e) => setSort(e.target.value)}
             className="border border-[var(--border)] rounded px-2 py-2 text-sm bg-[var(--bg)] text-[var(--text)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]">
-            <option value="newest">Newest</option><option value="votes">Top Voted</option>
-            <option value="views">Most Viewed</option><option value="unanswered">Unanswered</option>
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="votes">Top Voted</option>
+            <option value="views">Most Viewed</option>
+            <option value="recently_updated">Recently Updated</option>
+            <option value="unanswered">Unanswered</option>
+            <option value="relevance">Relevance</option>
           </select>
         </div>
         {tag && (
@@ -305,6 +330,11 @@ const FAQListPage = () => {
                       <span className="flex-shrink-0 text-lg"><CategoryIcon category={faq.category} /></span>
                     </div>
                     {faq.body && <p className="text-sm text-[var(--text-muted)] mt-1 line-clamp-2">{faq.body}</p>}
+                    {faq.highlights?.length > 0 && (
+                      <p className="text-xs text-[var(--primary)] mt-1.5 italic border-l-2 border-[var(--primary)] pl-2 line-clamp-2">
+                        {faq.highlights[0]}
+                      </p>
+                    )}
                     {faq.tags?.length > 0 && (
                       <div className="flex gap-1 mt-2 flex-wrap">
                         {faq.tags.map((t) => <span key={t} className="px-2 py-0.5 bg-[var(--surface)] text-[var(--text-muted)] text-xs rounded-full">{t}</span>)}

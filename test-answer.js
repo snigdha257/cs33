@@ -1,35 +1,36 @@
 const http = require('http');
 
-function makeReq(method, path, body, token) {
-  return new Promise((resolve, reject) => {
-    const headers = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = 'Bearer ' + token;
-    const req = http.request({ hostname: 'localhost', port: 5000, path, method, headers }, (res) => {
-      let d = ''; res.on('data', c => d += c); res.on('end', () => {
-        try { resolve({ status: res.statusCode, body: JSON.parse(d) }); }
-        catch (e) { resolve({ status: res.statusCode, raw: d.slice(0, 200) }); }
-      });
+function login(email, pass) {
+  return new Promise((resolve) => {
+    const body = JSON.stringify({ email, password: pass });
+    const r = http.request({ hostname: 'localhost', port: 5000, path: '/api/auth/login', method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': body.length } }, (res) => {
+      let d = ''; res.on('data', c => d += c);
+      res.on('end', () => resolve(JSON.parse(d)));
     });
-    req.on('error', reject);
-    if (body) req.write(JSON.stringify(body));
-    req.end();
+    r.write(body); r.end();
   });
 }
 
-async function main() {
-  const login = await makeReq('POST', '/api/auth/login', { email: 'lohi@gmail.com', password: 'password123' });
-  console.log('1. Login:', login.status, login.body.success ? 'OK, token=' + login.body.token.slice(0, 12) + '...' : login.body.message);
-  if (!login.body.success) return;
-  const token = login.body.token;
-
-  const faqs = await makeReq('GET', '/api/faqs?limit=1', null, token);
-  console.log('2. GetAll:', faqs.status, faqs.body.success, Array.isArray(faqs.body.data) ? 'len=' + faqs.body.data.length : typeof faqs.body.data);
-  if (!faqs.body.data?.length) return;
-  const id = faqs.body.data[0]._id;
-  console.log('   ID:', id);
-
-  const answer = 'This is a very thorough test answer that is definitely over the minimum thirty character count required by validation rules.';
-  const post = await makeReq('POST', '/api/faqs/' + id + '/answers', { body: answer }, token);
-  console.log('3. PostAnswer:', post.status, JSON.stringify(post.body));
+function postAnswer(token, faqId, answerBody) {
+  return new Promise((resolve) => {
+    const body = JSON.stringify({ body: answerBody });
+    const r = http.request({ hostname: 'localhost', port: 5000, path: `/api/faqs/${faqId}/answers`, method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Content-Length': body.length } }, (res) => {
+      let d = ''; res.on('data', c => d += c);
+      res.on('end', () => resolve({ status: res.statusCode, body: JSON.parse(d) }));
+    });
+    r.write(body); r.end();
+  });
 }
-main().catch(console.error);
+
+async function run() {
+  const loginData = await login('user1@test.com', 'password123');
+  const token = loginData.token;
+  const faqId = '6a1ae4b97a79f0719d086c57'; // first FAQ
+
+  console.log('FAQ ID:', faqId);
+  const res = await postAnswer(token, faqId, 'This is a test answer that is definitely longer than thirty characters.');
+  console.log('Status:', res.status);
+  console.log('Response:', JSON.stringify(res.body));
+}
+
+run().catch(console.error);

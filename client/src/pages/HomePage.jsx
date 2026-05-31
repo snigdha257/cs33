@@ -43,8 +43,8 @@ const HomePage = () => {
         ]);
 
         if (!isMounted) return;
-        const statsPayload = statsRes?.data ?? {};
-        const trendingItems = Array.isArray(trendingRes?.data) ? trendingRes.data : [];
+        const statsPayload = statsRes?.data?.data ?? {};
+        const trendingItems = Array.isArray(trendingRes?.data?.data) ? trendingRes.data.data : [];
         const pinnedItems = Array.isArray(pinnedRes?.data?.data)
           ? pinnedRes.data.data.filter((f) => f.isPinned)
           : [];

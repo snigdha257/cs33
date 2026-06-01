@@ -427,6 +427,9 @@ const voteFAQ = async (req, res, next) => {
     faq.votes += voteDelta;
     await faq.save();
 
+    // Invalidate trending cache so next request reflects the new vote count
+    trendingCache.fetchedAt = 0;
+
     const repDelta = voteDelta === 1 ? 10 : voteDelta === -1 ? -2 : 0;
     if (repDelta !== 0) {
       await User.findByIdAndUpdate(faq.author, { $inc: { reputation: repDelta } });

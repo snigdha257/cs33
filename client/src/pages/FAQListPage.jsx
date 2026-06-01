@@ -182,7 +182,14 @@ const FAQListPage = () => {
           // Toggle off if clicking same direction again
           if (currentVote === rawVote) newVote = 0;
           const voteDelta = newVote - currentVote;
-          return { ...f, votes: (f.votes || 0) + voteDelta };
+
+          // Update voters array to keep button highlight in sync
+          const votersWithoutMe = (f.voters || []).filter((v) => v.user !== user.id && v.user?._id !== user.id);
+          const newVoters = newVote !== 0
+            ? [...votersWithoutMe, { user: user.id, vote: newVote }]
+            : votersWithoutMe;
+
+          return { ...f, votes: (f.votes || 0) + voteDelta, voters: newVoters };
         })
       );
 

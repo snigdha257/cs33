@@ -329,8 +329,11 @@ const FAQDetailPage = () => {
     if (!faq?._id) { console.error('[vote] faq._id is missing'); return; }
     try {
       console.log('[vote] id:', faq._id, '| vote:', vote);
-      const res = await faqs.vote(faq._id, { vote });
-      setFaq((prev) => prev ? { ...prev, votes: res.data.data.votes } : prev);
+      const res = await faqs.vote(faq._id, vote);
+      setFaq((prev) => prev
+        ? { ...prev, votes: res.data.data.votes, voters: res.data.data.voters }
+        : prev
+      );
     } catch (err) {
       toast.error(err.message);
     }

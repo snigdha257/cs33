@@ -416,9 +416,10 @@ const FAQDetailPage = () => {
   const handleSave = async () => {
     if (!user) { toast.error('Login to save'); return; }
     try {
+      const isCurrentlySaved = saved;
       await users.saveFAQ(faq._id);
-      setSaved((s) => !s);
-      toast.success(saved ? 'Removed from saved' : 'Saved!');
+      setSaved(!isCurrentlySaved);
+      toast.success(isCurrentlySaved ? 'Removed from saved' : 'Saved!');
     } catch (err) {
       toast.error(err.message);
     }

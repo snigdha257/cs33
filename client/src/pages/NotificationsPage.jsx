@@ -41,7 +41,7 @@ const NotificationsPage = () => {
   const handleMarkOne = async (notif) => {
     if (!notif.isRead) {
       try { await notifApi.markRead(notif._id); } catch {}
-      setList((l) => l.map((n) => n._id === notif._id ? { ...n, isRead: true } : n));
+      setList((l) => l.filter((n) => n._id !== notif._id));
       setUnread((n) => Math.max(0, n - 1));
     }
     const faqId = typeof notif.faqId === 'object' ? notif.faqId._id : notif.faqId;

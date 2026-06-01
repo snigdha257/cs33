@@ -55,7 +55,7 @@ const NotificationBell = () => {
     if (!notif.isRead) {
       try { await notifApi.markRead(notif._id); } catch {}
       if (!isMounted) return;
-      setList((l) => l.map((n) => n._id === notif._id ? { ...n, isRead: true } : n));
+      setList((l) => l.filter((n) => n._id !== notif._id));
       setUnread((n) => Math.max(0, n - 1));
     }
     if (!isMounted) return;

@@ -693,7 +693,17 @@ const addComment = async (req, res, next) => {
 
     await faq.save();
 
-    // Notification to content author
+    // Re-fetch with populated author so the client gets full comment data
+    let updatedComments;
+    if (answerId) {
+      await faq.populate('answers.comments.author', 'name avatar');
+      updatedComments = faq.answers.id(answerId)?.comments ?? [];
+    } else {
+      await faq.populate('comments.author', 'name avatar');
+      updatedComments = faq.comments;
+    }
+
+    // Notify content author
     if (!targetAuthor.equals(req.user._id)) {
       await createNotification({
         recipient: targetAuthor,
@@ -705,7 +715,12 @@ const addComment = async (req, res, next) => {
       });
     }
 
-    return res.status(201).json({ success: true, message: 'Comment added' });
+    // Emit so all clients (including sender) update in real-time
+    if (req.io) {
+      req.io.to(`faq:${id}`).emit('faq:commentsUpdated', { answerId, comments: updatedComments });
+    }
+
+    return res.status(201).json({ success: true, message: 'Comment added', comments: updatedComments });
   } catch (err) {
     return next(err);
   }
@@ -742,7 +757,22 @@ const deleteComment = async (req, res, next) => {
 
     await faq.save();
 
-    return res.json({ success: true, message: 'Comment deleted' });
+    // Re-fetch with populated author so the client gets the updated list
+    let updatedComments;
+    if (answerId) {
+      await faq.populate('answers.comments.author', 'name avatar');
+      updatedComments = faq.answers.id(answerId)?.comments ?? [];
+    } else {
+      await faq.populate('comments.author', 'name avatar');
+      updatedComments = faq.comments;
+    }
+
+    // Emit so all clients update in real-time
+    if (req.io) {
+      req.io.to(`faq:${id}`).emit('faq:commentsUpdated', { answerId, comments: updatedComments });
+    }
+
+    return res.json({ success: true, message: 'Comment deleted', comments: updatedComments });
   } catch (err) {
     return next(err);
   }

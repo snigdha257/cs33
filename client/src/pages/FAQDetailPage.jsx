@@ -284,6 +284,19 @@ const FAQDetailPage = () => {
       });
     });
 
+    socket.on('faq:commentsUpdated', ({ answerId, comments }) => {
+      if (!isMounted) return;
+      setFaq((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          answers: answerId
+            ? prev.answers.map((a) => a._id === answerId ? { ...a, comments } : a)
+            : prev.answers, // FAQ-level comments don't affect answer list
+        };
+      });
+    });
+
     return () => {
       isMounted = false;
       socket.emit('faq:leave', id);

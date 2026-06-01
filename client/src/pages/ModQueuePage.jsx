@@ -118,7 +118,7 @@ const ActionModal = ({ report, onAction, onCancel }) => {
 };
 
 // ── FAQ card used in Pending / Flagged tabs ────────────────────────────────────
-const FAQRow = ({ faq, onApprove, onReject, variant = 'pending' }) => {
+const FAQRow = ({ faq, onApprove, onReject, onUnflag, variant = 'pending' }) => {
   const [rejectOpen, setRejectOpen] = useState(false);
 
   const handleApprove = async () => {
@@ -147,7 +147,11 @@ const FAQRow = ({ faq, onApprove, onReject, variant = 'pending' }) => {
     try {
       const newStatus = variant === 'flagged' ? 'pending' : 'flagged';
       await faqs.updateStatus(faq._id, newStatus);
-      onReject(faq._id);
+      if (variant === 'flagged' && onUnflag) {
+        onUnflag();
+      } else {
+        onReject(faq._id);
+      }
       toast.success(variant === 'flagged' ? 'FAQ unflagged' : 'FAQ flagged for review');
     } catch (err) {
       toast.error(err.message || 'Failed to update');
@@ -322,6 +326,13 @@ const ModQueuePage = () => {
   const [reports, setReports]   = useState([]);
   const [loading, setLoading]   = useState(true);
 
+  const loadPending = async () => {
+    try {
+      const res = await faqs.getAll({ status: 'pending', limit: 50 });
+      setPending(res.data.data ?? []);
+    } catch { toast.error('Failed to load pending FAQs'); }
+  };
+
   const loadAll = async () => {
     setLoading(true);
     let isMounted = true;
@@ -438,6 +449,7 @@ const ModQueuePage = () => {
                     variant="flagged"
                     onApprove={(id) => removeFAQ(id, flagged, setFlagged)}
                     onReject={(id) => removeFAQ(id, flagged, setFlagged)}
+                    onUnflag={loadPending}
                   />
                 ))
               )

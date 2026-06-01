@@ -312,7 +312,7 @@ const getLeaderboard = async (req, res, next) => {
     const topUsers = await User.find()
       .sort({ reputation: -1 })
       .limit(10)
-      .select('name avatar reputation badges');
+      .select('name avatar reputation badges role');
 
     const enriched = await Promise.all(
       topUsers.map(async (user) => {
@@ -323,6 +323,7 @@ const getLeaderboard = async (req, res, next) => {
           avatar: user.avatar,
           reputation: user.reputation,
           badges: user.badges,
+          role: user.role,
           faqCount,
         };
       })

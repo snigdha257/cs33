@@ -61,7 +61,15 @@ const LeaderboardPage = () => {
                       alt={u.name} className="w-12 h-12 rounded-full object-cover ring-2 ring-white"
                     />
                     <div>
-                      <p className="font-bold text-[var(--text-h)]">{u.name}</p>
+                      <p className="font-bold text-[var(--text-h)]">
+                        {u.name}
+                        {u.role === 'admin' && (
+                          <span className="ml-1.5 text-xs font-semibold text-red-400 bg-red-400/10 px-1.5 py-0.5 rounded">admin</span>
+                        )}
+                        {u.role === 'moderator' && (
+                          <span className="ml-1.5 text-xs font-semibold text-purple-400 bg-purple-400/10 px-1.5 py-0.5 rounded">moderator</span>
+                        )}
+                      </p>
                       <div className="flex items-center gap-2 mt-0.5">
                         {u.badges?.slice(0, 2).map((b, bi) => (
                           <span key={bi} className="text-xs px-2 py-0.5 bg-[var(--card-bg)]/70 rounded-full text-[var(--text-muted)]">

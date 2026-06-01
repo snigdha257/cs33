@@ -309,10 +309,10 @@ const getUserActivity = async (req, res, next) => {
 const getLeaderboard = async (req, res, next) => {
   console.log('[DEBUG] getLeaderboard called for path:', req.originalUrl);
   try {
-    const topUsers = await User.find()
+    const topUsers = await User.find({ role: { $in: ['user'] } })
       .sort({ reputation: -1 })
       .limit(10)
-      .select('name avatar reputation badges role');
+      .select('name avatar reputation badges');
 
     const enriched = await Promise.all(
       topUsers.map(async (user) => {
@@ -323,7 +323,6 @@ const getLeaderboard = async (req, res, next) => {
           avatar: user.avatar,
           reputation: user.reputation,
           badges: user.badges,
-          role: user.role,
           faqCount,
         };
       })

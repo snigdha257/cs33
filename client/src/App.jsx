@@ -15,6 +15,7 @@ import EditProfilePage from './pages/EditProfilePage';
 import SavedFAQsPage   from './pages/SavedFAQsPage';
 import ActivityFeedPage from './pages/ActivityFeedPage';
 import LeaderboardPage from './pages/LeaderboardPage';
+import NotificationsPage from './pages/NotificationsPage';
 import ModQueuePage    from './pages/ModQueuePage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import LoginPage       from './pages/LoginPage';
@@ -61,6 +62,7 @@ const App = () => {
               <Route path="/saved"                    element={<ProtectedRoute><SavedFAQsPage /></ProtectedRoute>} />
               <Route path="/feed"                     element={<ProtectedRoute><ActivityFeedPage /></ProtectedRoute>} />
               <Route path="/leaderboard"              element={<LeaderboardPage />} />
+              <Route path="/notifications"            element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
               <Route path="/mod"                      element={<ProtectedRoute requiredRole="moderator"><ModQueuePage /></ProtectedRoute>} />
               <Route path="/admin"                    element={<ProtectedRoute requiredRole="admin"><AdminDashboardPage /></ProtectedRoute>} />
               <Route path="/login"                    element={<LoginPage />} />

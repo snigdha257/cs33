@@ -59,7 +59,10 @@ const NotificationBell = () => {
       setUnread((n) => Math.max(0, n - 1));
     }
     if (!isMounted) return;
-    if (notif.faqId) navigate(`/faqs/${notif.faqId}`);
+    if (notif.faqId) {
+      const faqId = typeof notif.faqId === 'object' ? notif.faqId._id : notif.faqId;
+      navigate(`/faqs/${faqId}`);
+    }
     setOpen(false);
   };
 
@@ -85,7 +88,7 @@ const NotificationBell = () => {
       >
         <Bell size={20} />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-[var(--error)]/100 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none shadow-sm">
             {unread > 99 ? '99+' : unread}
           </span>
         )}

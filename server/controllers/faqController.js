@@ -251,7 +251,14 @@ const getOne = async (req, res, next) => {
     // Fire-and-forget — don't let view increment failure affect the response
     FAQ.findByIdAndUpdate(faq._id, { $inc: { views: 1 } }).catch(() => {});
 
-    return res.json({ success: true, data: faq });
+    // Attach isSaved flag for authenticated users based on their savedFAQs list
+    let isSaved = false;
+    if (req.user) {
+      const fullUser = await User.findById(req.user._id).select('savedFAQs');
+      isSaved = fullUser?.savedFAQs?.some((sid) => sid.equals(faq._id)) ?? false;
+    }
+
+    return res.json({ success: true, data: { ...faq.toObject(), isSaved } });
   } catch (err) {
     return next(err);
   }

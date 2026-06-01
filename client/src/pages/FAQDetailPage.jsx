@@ -221,6 +221,11 @@ const FAQDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
+
+  // Sync saved state from server response (handles page reload correctly)
+  useEffect(() => {
+    if (faq?.isSaved !== undefined) setSaved(faq.isSaved);
+  }, [faq?.isSaved]);
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [reportDetails, setReportDetails] = useState('');

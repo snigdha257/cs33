@@ -833,6 +833,18 @@ const updateStatus = async (req, res, next) => {
     if (status === 'approved') faq.reviewedAt = new Date();
     await faq.save();
 
+    // Notify author on rejection
+    if (status === 'rejected' && faq.author) {
+      await createNotification({
+        recipient: faq.author,
+        sender: req.user._id,
+        type: 'system',
+        faqId: faq._id,
+        message: `Your FAQ "${faq.question}" was rejected${reason ? `: ${reason}` : '.'}`,
+        io: req.io,
+      });
+    }
+
     if (req.io) req.io.to(`faq:${id}`).emit('faq:statusChanged', { id, status });
 
     return res.json({ success: true, data: { _id: faq._id, status } });

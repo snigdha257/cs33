@@ -95,9 +95,6 @@ const AdminDashboardPage = () => {
   // Pending FAQs (for bulk approve + pin/close controls)
   const [pendingFAQs, setPendingFAQs]   = useState([]);
   const [pendingLoading, setPendingLoading] = useState(true);
-  // Pinned FAQs (separate list so pinnen items are visible, not hidden)
-  const [pinnedFAQs, setPinnedFAQs]     = useState([]);
-  const [pinnedLoading, setPinnedLoading] = useState(true);
   const [selected, setSelected]         = useState(new Set());
 
   // Confirmation dialog
@@ -143,23 +140,8 @@ const AdminDashboardPage = () => {
     }
   }, []);
 
-  // ── Fetch pinned FAQs ───────────────────────────────────────────────────────
-  const loadPinned = useCallback(async () => {
-    setPinnedLoading(true);
-    try {
-      const res = await faqs.getAll({ isPinned: true, limit: 50 });
-      setPinnedFAQs(Array.isArray(res.data.data) ? res.data.data : []);
-    } catch {
-      // silent fail - pinned section is non-critical
-    } finally {
-      setPinnedLoading(false);
-    }
-  }, []);
-
   useEffect(() => { loadStats(); }, [loadStats]);
   useEffect(() => { loadUsers(); }, [loadUsers]);
-  useEffect(() => { loadPending(); }, [loadPending]);
-  useEffect(() => { loadPinned(); }, [loadPinned]);
   useEffect(() => { loadPending(); }, [loadPending]);
 
   // ── Debounced user search ───────────────────────────────────────────────────
@@ -229,19 +211,14 @@ const AdminDashboardPage = () => {
     try {
       const wasPinned = faq.isPinned;
       await faqs.togglePin(faq._id);
-
-      if (wasPinned) {
-        // Unpinning — remove from pinned list, re-fetch to keep list clean
-        setPinnedFAQs((f) => f.filter((x) => x._id !== faq._id));
-      } else {
-        // Pinning — optimistic move from pending to pinned
-        setPendingFAQs((f) => f.filter((x) => x._id !== faq._id));
-        setPinnedFAQs((f) => [{ ...faq, isPinned: true }, ...f]);
-      }
-
+      // Optimistic: toggle in-place; sorting below ensures pinned items stay at top
+      setPendingFAQs((list) =>
+        list.map((f) => f._id === faq._id ? { ...f, isPinned: !wasPinned } : f)
+      );
       toast.success(wasPinned ? 'Unpinned' : 'Pinned');
     } catch (err) {
       toast.error(err.message || 'Failed');
+      loadPending(); // revert on error
     }
   };
 
@@ -328,7 +305,10 @@ const AdminDashboardPage = () => {
             <p className="text-sm text-[var(--text-muted)] text-center py-8">No pending FAQs — all clear!</p>
           ) : (
             <div className="space-y-2">
-              {pendingFAQs.map((faq) => (
+              {/* Sort: pinned first, then by original order */}
+              {[...pendingFAQs]
+                .sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0))
+                .map((faq) => (
                 <div key={faq._id}
                   className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
                     selected.has(faq._id) ? 'border-[var(--primary)] bg-[var(--primary)]/10' : 'border-[var(--border)] hover:border-[var(--border)]'
@@ -360,59 +340,6 @@ const AdminDashboardPage = () => {
                     </button>
                     <Link to={`/faqs/${String(faq._id || '')}`} target="_blank"
                       className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-muted)] hover:bg-[var(--surface)] rounded-lg">
-                      ↗
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* ── Pinned FAQs ────────────────────────────────────────────── */}
-        <div className="bg-[var(--card-bg)] rounded-2xl border border-[var(--border)] p-6 mb-6">
-          <h2 className="text-base font-bold text-[var(--text-h)] mb-4 flex items-center gap-2">
-            <Pin size={16} className="text-[var(--primary)]" />
-            Pinned FAQs
-            {pinnedFAQs.length > 0 && (
-              <span className="ml-2 px-2 py-0.5 bg-[var(--primary)]/10 text-[var(--primary)] text-xs font-bold rounded-full">
-                {pinnedFAQs.length}
-              </span>
-            )}
-          </h2>
-
-          {pinnedLoading ? (
-            <div className="space-y-3">
-              {[...Array(2)].map((_, i) => (
-                <div key={i} className="h-16 bg-[var(--surface)] rounded-lg animate-pulse" />
-              ))}
-            </div>
-          ) : pinnedFAQs.length === 0 ? (
-            <p className="text-sm text-[var(--text-muted)] text-center py-8">No pinned FAQs yet.</p>
-          ) : (
-            <div className="space-y-2">
-              {pinnedFAQs.map((faq) => (
-                <div key={faq._id}
-                  className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] hover:border-[var(--border)] bg-[var(--surface)]">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[var(--text-h)] line-clamp-1">{faq.question}</p>
-                    <p className="text-xs text-[var(--text-muted)] mt-0.5">
-                      by {faq.author?.name || 'Unknown'} · {faq.category}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <button
-                      onClick={() => handlePinToggle(faq)}
-                      className="p-1.5 text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg"
-                      title="Unpin"
-                    >
-                      <PinOff size={15} />
-                    </button>
-                    <Link
-                      to={`/faqs/${String(faq._id || '')}`}
-                      target="_blank"
-                      className="p-1.5 text-[var(--text-muted)] hover:bg-[var(--surface)] rounded-lg text-sm"
-                    >
                       ↗
                     </Link>
                   </div>

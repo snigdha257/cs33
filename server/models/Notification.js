@@ -13,7 +13,7 @@ const NotificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['answer', 'comment', 'vote', 'accept', 'badge', 'follow'],
+      enum: ['answer', 'comment', 'vote', 'accept', 'badge', 'follow', 'system'],
       required: true,
     },
     faqId: {

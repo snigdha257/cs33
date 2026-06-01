@@ -148,6 +148,8 @@ const FAQRow = ({ faq, onApprove, onReject, onUnflag, variant = 'pending' }) => 
       const newStatus = variant === 'flagged' ? 'pending' : 'flagged';
       await faqs.updateStatus(faq._id, newStatus);
       if (variant === 'flagged' && onUnflag) {
+        // Remove from flagged list AND refresh pending list
+        onReject(faq._id);
         onUnflag();
       } else {
         onReject(faq._id);

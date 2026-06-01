@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Loader2, Eye, EyeOff, Bell, BellOff, Lock } from 'lucide-react';
+import { Eye, EyeOff, Bell, BellOff, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { users, upload } from '../services/api';
+import { users } from '../services/api';
 import toast from 'react-hot-toast';
 
 const Toggle = ({ checked, onChange, label }) => (
@@ -24,7 +24,6 @@ const Toggle = ({ checked, onChange, label }) => (
 const EditProfilePage = () => {
   const { user, updateUser } = useAuth();
   const navigate = useNavigate();
-  const fileRef = useRef(null);
 
   const [form, setForm] = useState({ name: '', bio: '', avatar: '' });
   const [notifyOnAnswer,  setNotifyOnAnswer]  = useState(true);
@@ -32,7 +31,6 @@ const EditProfilePage = () => {
   const [passwords, setPasswords] = useState({ current: '', newPw: '', confirm: '' });
   const [showPw, setShowPw] = useState({ current: false, newPw: false, confirm: false });
   const [submitting, setSubmitting] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -42,29 +40,6 @@ const EditProfilePage = () => {
   }, [user]);
 
   const set = (field, val) => setForm((f) => ({ ...f, [field]: val }));
-
-  const handleAvatarFile = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { toast.error('Max file size is 5MB'); return; }
-    if (!file.type.startsWith('image/')) { toast.error('Only image files allowed'); return; }
-    setUploadingAvatar(true);
-    let isMounted = true;
-    try {
-      const fd = new FormData();
-      fd.append('image', file);
-      const res = await upload.image(fd);
-      if (!isMounted) return;
-      const url = res.data.url;
-      setForm((f) => ({ ...f, avatar: url }));
-      toast.success('Avatar uploaded!');
-    } catch (err) {
-      if (!isMounted) return;
-      toast.error(err.message || 'Upload failed');
-    } finally {
-      if (isMounted) setUploadingAvatar(false);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -134,45 +109,11 @@ const EditProfilePage = () => {
       <div className="max-w-xl mx-auto space-y-6">
 
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-[var(--primary)]/10 rounded-full flex items-center justify-center">
-            <Camera size={18} className="text-[var(--primary)]" />
-          </div>
-          <h1 className="text-2xl font-bold text-[var(--text-h)]">Edit Profile</h1>
-        </div>
+        <h1 className="text-2xl font-bold text-[var(--text-h)]">Edit Profile</h1>
 
         <form onSubmit={handleSubmit} noValidate className="bg-white rounded-2xl border border-[var(--border)] p-6 space-y-6">
 
-          {/* Avatar */}
-          <div>
-            <label className="block text-sm font-semibold text-[var(--text)] mb-3">Profile Photo</label>
-            <div className="flex items-center gap-5">
-              <div className="relative flex-shrink-0">
-                <img
-                  src={form.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(form.name || 'U')}&background=3b82f6&color=fff&size=80`}
-                  alt="Avatar preview"
-                  className="w-20 h-20 rounded-2xl object-cover ring-2 ring-gray-100"
-                />
-                {uploadingAvatar && (
-                  <div className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center">
-                    <Loader2 size={18} className="animate-spin text-white" />
-                  </div>
-                )}
-              </div>
-              <div>
-                <input ref={fileRef} type="file" accept="image/*" onChange={handleAvatarFile} className="hidden" />
-                <button
-                  type="button"
-                  onClick={() => fileRef.current?.click()}
-                  disabled={uploadingAvatar}
-                  className="px-4 py-2 text-sm bg-[var(--surface)] text-[var(--text)] font-medium rounded-lg hover:bg-[var(--surface)] disabled:opacity-50 transition-colors"
-                >
-                  {uploadingAvatar ? 'Uploading...' : 'Upload Photo'}
-                </button>
-                <p className="text-xs text-[var(--text-muted)] mt-1.5">JPG, PNG, WebP — max 5MB</p>
-              </div>
-            </div>
-          </div>
+
 
           {/* Name */}
           <div>

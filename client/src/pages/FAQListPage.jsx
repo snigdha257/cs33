@@ -187,7 +187,7 @@ const FAQListPage = () => {
       );
 
       try {
-        await faqs.vote(faqId, { vote: rawVote });
+        await faqs.vote(faqId, rawVote);
       } catch (err) {
         // Revert optimistic update on failure
         reexecute();

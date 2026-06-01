@@ -51,15 +51,9 @@ const NotificationBell = () => {
   const handleOpen = () => setOpen((o) => !o);
 
   const handleOne = async (notif) => {
-    let isMounted = true;
-    if (!notif.isRead) {
-      try { await notifApi.markRead(notif._id); } catch {}
-      if (!isMounted) return;
-      setUnread((n) => Math.max(0, n - 1));
-    }
-    if (!isMounted) return;
-    // Always remove the notification from the list on click
+    try { await notifApi.deleteOne(notif._id); } catch {}
     setList((l) => l.filter((n) => n._id !== notif._id));
+    if (!notif.isRead) setUnread((n) => Math.max(0, n - 1));
     if (notif.faqId) {
       const faqId = typeof notif.faqId === 'object' ? notif.faqId._id : notif.faqId;
       navigate(`/faqs/${faqId}`);
@@ -68,11 +62,9 @@ const NotificationBell = () => {
   };
 
   const handleMarkAll = async () => {
-    let isMounted = true;
     try {
       await notifApi.markAllRead();
-      if (!isMounted) return;
-      setList((l) => l.map((n) => ({ ...n, isRead: true })));
+      setList([]);
       setUnread(0);
     } catch {}
   };

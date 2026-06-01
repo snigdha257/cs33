@@ -39,19 +39,16 @@ const NotificationsPage = () => {
   }, [socket]);
 
   const handleMarkOne = async (notif) => {
-    if (!notif.isRead) {
-      try { await notifApi.markRead(notif._id); } catch {}
-      setUnread((n) => Math.max(0, n - 1));
-    }
-    // Always remove from list on click
+    try { await notifApi.deleteOne(notif._id); } catch {}
     setList((l) => l.filter((n) => n._id !== notif._id));
+    if (!notif.isRead) setUnread((n) => Math.max(0, n - 1));
     const faqId = typeof notif.faqId === 'object' ? notif.faqId._id : notif.faqId;
     if (faqId) window.location.href = `/faqs/${faqId}`;
   };
 
   const handleMarkAll = async () => {
     try { await notifApi.markAllRead(); } catch {}
-    setList((l) => l.map((n) => ({ ...n, isRead: true })));
+    setList([]);
     setUnread(0);
   };
 

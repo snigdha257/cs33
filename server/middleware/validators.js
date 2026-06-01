@@ -26,7 +26,7 @@ const Str255 = (field, min, max) =>
     .optional()
     .isString()
     .isLength({ min: min ?? 1, max: max ?? 255 })
-    .withMessage(`${field} must be a string ${min ?? 1}–${max ?? 255} chars`);
+    .withMessage(`${field} must be a string ${min ?? 1}-${max ?? 255} chars`);
 
 const isBoolean = (field) =>
   body(field)
@@ -39,7 +39,7 @@ const registerRules = [
   body('name')
     .trim()
     .isLength({ min: 2, max: 80 })
-    .withMessage('Name must be 2–80 characters'),
+    .withMessage('Name must be 2-80 characters'),
   body('email')
     .trim()
     .isEmail()
@@ -50,7 +50,7 @@ const registerRules = [
     .notEmpty()
     .trim()
     .isLength({ min: 8, max: 128 })
-    .withMessage('Password must be 8–128 characters'),
+    .withMessage('Password must be 8-128 characters'),
   validate,
 ];
 
@@ -84,7 +84,7 @@ const resetPasswordRules = [
     .notEmpty()
     .trim()
     .isLength({ min: 8, max: 128 })
-    .withMessage('Password must be 8–128 characters'),
+    .withMessage('Password must be 8-128 characters'),
   validate,
 ];
 
@@ -95,7 +95,7 @@ const createFAQRules = [
   body('question')
     .trim()
     .isLength({ min: 15, max: 300 })
-    .withMessage('Question must be 15–300 characters'),
+    .withMessage('Question must be 15-300 characters'),
   body('category')
     .trim()
     .toLowerCase()
@@ -114,7 +114,7 @@ const createFAQRules = [
     .optional()
     .isString()
     .isLength({ min: 1, max: 30 })
-    .withMessage('Each tag must be 1–30 characters')
+    .withMessage('Each tag must be 1-30 characters')
     .matches(/^[a-zA-Z0-9-_]+$/)
     .withMessage('Tags may only contain letters, numbers, hyphens and underscores'),
   validate,
@@ -126,7 +126,7 @@ const updateFAQRules = [
     .optional()
     .trim()
     .isLength({ min: 15, max: 300 })
-    .withMessage('Question must be 15–300 characters'),
+    .withMessage('Question must be 15-300 characters'),
   body('category')
     .optional()
     .trim()
@@ -146,7 +146,7 @@ const updateFAQRules = [
     .optional()
     .isString()
     .isLength({ min: 1, max: 30 })
-    .withMessage('Each tag must be 1–30 characters'),
+    .withMessage('Each tag must be 1-30 characters'),
   validate,
 ];
 
@@ -156,7 +156,7 @@ const addAnswerRules = [
   body('body')
     .trim()
     .isLength({ min: 30, max: 5000 })
-    .withMessage('Answer must be 30–5000 characters'),
+    .withMessage('Answer must be 30-5000 characters'),
   validate,
 ];
 
@@ -166,7 +166,7 @@ const updateAnswerRules = [
   body('body')
     .trim()
     .isLength({ min: 30, max: 5000 })
-    .withMessage('Answer must be 30–5000 characters'),
+    .withMessage('Answer must be 30-5000 characters'),
   validate,
 ];
 
@@ -176,7 +176,7 @@ const addCommentRules = [
   body('body')
     .trim()
     .isLength({ min: 2, max: 2000 })
-    .withMessage('Comment must be 2–2000 characters'),
+    .withMessage('Comment must be 2-2000 characters'),
   validate,
 ];
 
@@ -185,8 +185,8 @@ const reportRules = [
   ObjectIdParam('id'),
   body('reason')
     .trim()
-    .isLength({ min: 10, max: 1000 })
-    .withMessage('Reason must be 10–1000 characters'),
+    .isIn(['spam', 'offensive', 'duplicate', 'misleading', 'other'])
+    .withMessage('Invalid report reason'),
   validate,
 ];
 
@@ -208,7 +208,7 @@ const changePasswordRules = [
     .notEmpty()
     .trim()
     .isLength({ min: 8, max: 128 })
-    .withMessage('New password must be 8–128 characters'),
+    .withMessage('New password must be 8-128 characters'),
   validate,
 ];
 
@@ -223,7 +223,7 @@ const paginationRules = [
     .optional()
     .toInt()
     .custom((v) => v >= 1 && v <= 100)
-    .withMessage('limit must be 1–100'),
+    .withMessage('limit must be 1-100'),
   validate,
 ];
 

@@ -14,12 +14,11 @@ import { useSocket } from '../context/SocketContext';
 import toast from 'react-hot-toast';
 
 const REPORT_REASONS = [
-  'Spam or advertising',
-  'Inappropriate content',
-  'Incorrect information',
-  'Duplicate question',
-  'Offensive or harmful',
-  'Other',
+  { value: 'spam',       label: 'Spam or advertising' },
+  { value: 'offensive',  label: 'Offensive or harmful' },
+  { value: 'duplicate',  label: 'Duplicate question' },
+  { value: 'misleading', label: 'Incorrect information' },
+  { value: 'other',      label: 'Other' },
 ];
 
 const getAvatarUrl = (author) =>
@@ -614,7 +613,7 @@ const FAQDetailPage = () => {
                     required
                   >
                     <option value="">Select a reason...</option>
-                    {REPORT_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                    {REPORT_REASONS.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                   </select>
                   <textarea
                     value={reportDetails}

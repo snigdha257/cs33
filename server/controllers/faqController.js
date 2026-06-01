@@ -783,8 +783,8 @@ const reportContent = async (req, res, next) => {
     const { id } = req.params;
     const { reason, targetType = 'faq', details } = req.body;
 
-    if (!reason || reason.trim().length < 10) {
-      return next(new AppError('Reason must be at least 10 characters', 400));
+    if (!reason || reason.trim().length < 1) {
+      return next(new AppError('Reason is required', 400));
     }
 
     const faq = await FAQ.findById(id);

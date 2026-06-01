@@ -16,7 +16,7 @@ const RejectModal = ({ faq, onConfirm, onCancel }) => {
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
         <h3 className="text-lg font-bold text-[var(--text-h)] mb-1">Reject FAQ</h3>
-        <p className="text-sm text-[var(--text-muted)] mb-4">"{faq?.question || faq?.target?.question || 'this FAQ'}"</p>
+        <p className="text-sm text-[var(--text-muted)] mb-4">"{faq?.question || 'this FAQ'}"</p>
         <label className="block text-sm font-medium text-[var(--text)] mb-1.5">
           Rejection reason <span className="text-[var(--error)]">*</span>
         </label>
@@ -62,7 +62,7 @@ const ActionModal = ({ report, onAction, onCancel }) => {
 
   const handleReject = async (id, reason) => {
     try {
-      await faqs.updateStatus(report.faqId, 'rejected', reason);
+      await faqs.updateStatus(id, 'rejected', reason);
       await reviewReport(report._id, 'reviewed');
       onAction(report._id);
       toast.success('FAQ rejected and report marked reviewed');

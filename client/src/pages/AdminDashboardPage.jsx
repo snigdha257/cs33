@@ -143,6 +143,11 @@ const AdminDashboardPage = () => {
   useEffect(() => { loadStats(); }, [loadStats]);
   useEffect(() => { loadUsers(); }, [loadUsers]);
   useEffect(() => { loadPending(); }, [loadPending]);
+  // Refresh stats every 30s so report counts stay current
+  useEffect(() => {
+    const interval = setInterval(loadStats, 30_000);
+    return () => clearInterval(interval);
+  }, [loadStats]);
 
   // ── Debounced user search ───────────────────────────────────────────────────
   useEffect(() => {

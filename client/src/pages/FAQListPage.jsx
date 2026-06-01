@@ -422,7 +422,7 @@ const FAQListPage = () => {
                       <span>{format(new Date(faq.createdAt), { locale: 'en' })}</span>
                       <span className="flex items-center gap-0.5"><MessageSquare size={12} /> {faq.answers?.length || 0}</span>
                       <span className="flex items-center gap-0.5"><Eye size={12} /> {faq.views || 0}</span>
-                      {(user?.role === 'moderator' || user?.role === 'admin') && <StatusBadge status={faq.status} />}
+                      {faq.status !== 'approved' && <StatusBadge status={faq.status} />}
                       {/* Mobile vote buttons */}
                       <span className="sm:hidden flex items-center gap-0.5">
                         <button

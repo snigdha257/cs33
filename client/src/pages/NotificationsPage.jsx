@@ -41,9 +41,10 @@ const NotificationsPage = () => {
   const handleMarkOne = async (notif) => {
     if (!notif.isRead) {
       try { await notifApi.markRead(notif._id); } catch {}
-      setList((l) => l.filter((n) => n._id !== notif._id));
       setUnread((n) => Math.max(0, n - 1));
     }
+    // Always remove from list on click
+    setList((l) => l.filter((n) => n._id !== notif._id));
     const faqId = typeof notif.faqId === 'object' ? notif.faqId._id : notif.faqId;
     if (faqId) window.location.href = `/faqs/${faqId}`;
   };

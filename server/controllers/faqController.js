@@ -136,7 +136,7 @@ const getAll = async (req, res, next) => {
       sort: sortOption,
       projection,
       populate: 'author',
-      select: 'question body tags category status votes views answers comments author slug createdAt updatedAt isPinned',
+      select: 'question body tags category status votes voters views answers comments author slug createdAt updatedAt isPinned',
     };
 
     const result = await FAQ.paginate(query, options);

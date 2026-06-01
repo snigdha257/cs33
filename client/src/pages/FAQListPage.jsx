@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'timeago.js';
 import { Search, ChevronUp, ChevronDown, MessageSquare, Eye, Tag, Filter, X } from 'lucide-react';
 import { faqs } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 import useDocumentMeta from '../hooks/useDocumentMeta';
 import useAsync from '../hooks/useAsync';
 import Spinner from '../components/common/Spinner';
@@ -142,19 +143,59 @@ const FAQListPage = () => {
     [page, sort, debouncedSearch, searchFields, category, tag]
   );
 
-  const { data: faqResult, loading, error } = useAsync(
+  const { data: faqResult, loading, error, reexecute } = useAsync(
     () => faqs.getAll(params).then((r) => r.data),
     [params]
   );
 
-  const faqList    = faqResult?.data ?? [];
+  const [faqList, setFaqList] = useState([]);
   const totalPages = faqResult?.pagination?.totalPages ?? 1;
   const totalItems = faqResult?.pagination?.totalItems ?? 0;
+
+  // Keep local list in sync when API data changes
+  useEffect(() => {
+    setFaqList(faqResult?.data ?? []);
+  }, [faqResult]);
 
   useDocumentMeta({
     title: 'Browse FAQs',
     description: 'Search and explore questions answered by the community.',
   });
+
+  // ── Vote handler ──────────────────────────────────────────────────────────────────
+  const handleVote = useCallback(
+    async (faqId, rawVote, event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (!user) {
+        toast.error('Login to vote');
+        return;
+      }
+
+      // Optimistic snapshot
+      setFaqList((prev) =>
+        prev.map((f) => {
+          if (f._id !== faqId) return f;
+          const currentVote = f.voters?.find((v) => v.user === user.id || v.user?._id === user.id)?.vote ?? 0;
+          let newVote = rawVote;
+          // Toggle off if clicking same direction again
+          if (currentVote === rawVote) newVote = 0;
+          const voteDelta = newVote - currentVote;
+          return { ...f, votes: (f.votes || 0) + voteDelta };
+        })
+      );
+
+      try {
+        await faqs.vote(faqId, { vote: rawVote });
+      } catch (err) {
+        // Revert optimistic update on failure
+        reexecute();
+        toast.error(err.message || 'Failed to vote');
+      }
+    },
+    [user, reexecute]
+  );
 
   const getAvatarUrl = (author) =>
     author?.avatar ||
@@ -316,10 +357,36 @@ const FAQListPage = () => {
               <Link key={faq._id} to={`/faqs/${String(faq._id ?? faq.id ?? '')}`} className="faq-card">
                 <div className="flex items-start gap-3 sm:gap-4">
                   {/* Vote count — desktop only */}
-                  <div className="hidden sm:flex flex-col items-center min-w-[40px] text-[var(--text-muted)]">
-                    <ChevronUp size={16} className="text-[var(--border)]" />
-                    <span className="font-bold text-[var(--text)]">{faq.votes || 0}</span>
-                    <ChevronDown size={16} className="text-[var(--border)]" />
+                  <div className="hidden sm:flex flex-col items-center min-w-[40px]">
+                    <button
+                      onClick={(e) => handleVote(faq._id, 1, e)}
+                      className={`p-0.5 rounded transition-colors ${
+                        (faq.voters?.find((v) => v.user === user?.id || v.user?._id === user?.id)?.vote ?? 0) === 1
+                          ? 'text-[var(--primary)]'
+                          : 'text-[var(--text-muted)] hover:text-[var(--primary)]'
+                      }`}
+                    >
+                      <ChevronUp size={16} strokeWidth={2.5} />
+                    </button>
+                    <span className={`font-bold text-sm ${
+                      (faq.voters?.find((v) => v.user === user?.id || v.user?._id === user?.id)?.vote ?? 0) !== 0
+                        ? ((faq.voters?.find((v) => v.user === user?.id || v.user?._id === user?.id)?.vote ?? 0) === 1
+                            ? 'text-[var(--primary)]'
+                            : 'text-[var(--error)]')
+                        : 'text-[var(--text)]'
+                    }`}>
+                      {faq.votes || 0}
+                    </span>
+                    <button
+                      onClick={(e) => handleVote(faq._id, -1, e)}
+                      className={`p-0.5 rounded transition-colors ${
+                        (faq.voters?.find((v) => v.user === user?.id || v.user?._id === user?.id)?.vote ?? 0) === -1
+                          ? 'text-[var(--error)]'
+                          : 'text-[var(--text-muted)] hover:text-[var(--error)]'
+                      }`}
+                    >
+                      <ChevronDown size={16} strokeWidth={2.5} />
+                    </button>
                   </div>
                   {/* Content */}
                   <div className="flex-1 min-w-0">
@@ -349,7 +416,38 @@ const FAQListPage = () => {
                       <span className="flex items-center gap-0.5"><MessageSquare size={12} /> {faq.answers?.length || 0}</span>
                       <span className="flex items-center gap-0.5"><Eye size={12} /> {faq.views || 0}</span>
                       {(user?.role === 'moderator' || user?.role === 'admin') && <StatusBadge status={faq.status} />}
-                      {/* Mobile vote count */}<span className="sm:hidden font-semibold">▲ {faq.votes || 0}</span>
+                      {/* Mobile vote buttons */}
+                      <span className="sm:hidden flex items-center gap-0.5">
+                        <button
+                          onClick={(e) => handleVote(faq._id, 1, e)}
+                          className={`p-1 rounded transition-colors ${
+                            (faq.voters?.find((v) => v.user === user?.id || v.user?._id === user?.id)?.vote ?? 0) === 1
+                              ? 'text-[var(--primary)]'
+                              : 'text-[var(--text-muted)]'
+                          }`}
+                        >
+                          <ChevronUp size={15} strokeWidth={2.5} />
+                        </button>
+                        <span className={`font-bold text-sm ${
+                          (faq.voters?.find((v) => v.user === user?.id || v.user?._id === user?.id)?.vote ?? 0) !== 0
+                            ? ((faq.voters?.find((v) => v.user === user?.id || v.user?._id === user?.id)?.vote ?? 0) === 1
+                                ? 'text-[var(--primary)]'
+                                : 'text-[var(--error)]')
+                            : 'text-[var(--text)]'
+                        }`}>
+                          {faq.votes || 0}
+                        </span>
+                        <button
+                          onClick={(e) => handleVote(faq._id, -1, e)}
+                          className={`p-1 rounded transition-colors ${
+                            (faq.voters?.find((v) => v.user === user?.id || v.user?._id === user?.id)?.vote ?? 0) === -1
+                              ? 'text-[var(--error)]'
+                              : 'text-[var(--text-muted)]'
+                          }`}
+                        >
+                          <ChevronDown size={15} strokeWidth={2.5} />
+                        </button>
+                      </span>
                     </div>
                   </div>
                 </div>

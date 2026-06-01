@@ -840,8 +840,8 @@ const getTrending = async (req, res, next) => {
 
     const scored = faqs.map((f) => {
       const hoursOld = (now - new Date(f.createdAt).getTime()) / 3600000;
-      // Score = (votes * 3 + views) with gentle time decay — newer content ranks higher
-      const hotScore = (f.votes * 3 + f.views) / Math.pow(hoursOld + 2, 1.5);
+      // Score = (votes * 3 + views + answers * 2) with gentle time decay — newer content ranks higher
+      const hotScore = (f.votes * 3 + f.views + f.answers.length * 2) / Math.pow(hoursOld + 2, 1.5);
       return { ...f.toObject(), hotScore };
     });
 

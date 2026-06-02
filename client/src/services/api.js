@@ -41,11 +41,12 @@ api.interceptors.response.use(
 
 // ── Auth ──────────────────────────────────────────────
 export const auth = {
-  register:        (data) => api.post('/auth/register', data),
-  login:           (data) => api.post('/auth/login', data),
-  getMe:           ()     => api.get('/auth/me'),
-  forgotPassword:  (data) => api.post('/auth/forgot-password', data),
-  resetPassword:   (token, data) => api.put(`/auth/reset-password/${token}`, data),
+  register:      (data) => api.post('/auth/register', data),
+  login:         (data) => api.post('/auth/login', data),
+  getMe:         ()     => api.get('/auth/me'),
+  forgotPassword:(data) => api.post('/auth/forgot-password', data),
+  resetPassword: (token, data) => api.put(`/auth/reset-password/${token}`, data),
+  googleLogin:   (idToken) => api.post('/auth/google', { id_token: idToken }),
 };
 
 // ── FAQs ──────────────────────────────────────────────

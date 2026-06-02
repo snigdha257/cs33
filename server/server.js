@@ -20,15 +20,16 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc:  ["'self'"],
+      scriptSrc:  ["'self'", 'https://accounts.google.com/gsi/client'],
       styleSrc:   ["'self'", "'unsafe-inline'"],
       imgSrc:     ["'self'", 'data:', 'https:'],
-      connectSrc: ["'self'", CLIENT_URL],
+      connectSrc: ["'self'", CLIENT_URL, 'https://accounts.google.com'],
       frameAncestors: ["'none'"],
       formAction: ["'self'"],
     },
   },
   crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: false,
 }));
 
 // ── 2. CORS ───────────────────────────────────────────────────────────────────
@@ -85,7 +86,6 @@ app.use('/api/auth', rateLimit({
 }));
 
 // ── 7. Socket.IO — attached to http server, not express app ───────────────────
-// http.createServer(app) must precede this; req.io is injected before routes
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: CLIENT_URL, credentials: true },

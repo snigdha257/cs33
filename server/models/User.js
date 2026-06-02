@@ -119,6 +119,21 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    googleId: {
+      type: String,
+      sparse: true,
+      default: null,
+    },
+    googleAccessToken: {
+      type: String,
+      select: false,
+      default: null,
+    },
+    googleRefreshToken: {
+      type: String,
+      select: false,
+      default: null,
+    },
   },
   {
     timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },

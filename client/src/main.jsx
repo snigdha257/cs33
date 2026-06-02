@@ -8,5 +8,5 @@ createRoot(document.getElementById('root')).render(
   <ErrorBoundary>
     <Toaster position="top-right" />
     <App />
-  </ErrorBoundary>,
+  </ErrorBoundary>
 );

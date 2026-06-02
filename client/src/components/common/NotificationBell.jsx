@@ -51,9 +51,11 @@ const NotificationBell = () => {
   const handleOpen = () => setOpen((o) => !o);
 
   const handleOne = async (notif) => {
-    try { await notifApi.deleteOne(notif._id); } catch {}
-    setList((l) => l.filter((n) => n._id !== notif._id));
-    if (!notif.isRead) setUnread((n) => Math.max(0, n - 1));
+    try {
+      await notifApi.markRead(notif._id);
+      setList((l) => l.map((n) => n._id === notif._id ? { ...n, isRead: true } : n));
+      if (!notif.isRead) setUnread((n) => Math.max(0, n - 1));
+    } catch {}
     if (notif.faqId) {
       const faqId = typeof notif.faqId === 'object' ? notif.faqId._id : notif.faqId;
       navigate(`/faqs/${faqId}`);
@@ -64,7 +66,7 @@ const NotificationBell = () => {
   const handleMarkAll = async () => {
     try {
       await notifApi.markAllRead();
-      setList([]);
+      setList((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnread(0);
     } catch {}
   };

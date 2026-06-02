@@ -31,6 +31,7 @@ const EditProfilePage = () => {
   const [passwords, setPasswords] = useState({ current: '', newPw: '', confirm: '' });
   const [showPw, setShowPw] = useState({ current: false, newPw: false, confirm: false });
   const [submitting, setSubmitting] = useState(false);
+  const [pwSubmitting, setPwSubmitting] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -40,6 +41,8 @@ const EditProfilePage = () => {
   }, [user]);
 
   const set = (field, val) => setForm((f) => ({ ...f, [field]: val }));
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -60,7 +63,8 @@ const EditProfilePage = () => {
       toast.success('Profile updated!');
       navigate(`/profile/${user.id}`);
     } catch (err) {
-      toast.error(err.message || 'Update failed');
+      const msg = err.response?.data?.message || err.message || 'Update failed';
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
@@ -73,15 +77,16 @@ const EditProfilePage = () => {
     if (newPw.length < 8) { toast.error('New password must be at least 8 characters'); return; }
     if (newPw !== confirm) { toast.error('New passwords do not match'); return; }
 
-    setSubmitting(true);
+    setPwSubmitting(true);
     try {
       await users.changePassword(user.id, { currentPassword: current, newPassword: newPw });
       toast.success('Password changed successfully!');
       setPasswords({ current: '', newPw: '', confirm: '' });
     } catch (err) {
-      toast.error(err.message || 'Could not change password');
+      const msg = err.response?.data?.message || err.message || 'Could not change password';
+      toast.error(msg);
     } finally {
-      setSubmitting(false);
+      setPwSubmitting(false);
     }
   };
 
@@ -194,10 +199,10 @@ const EditProfilePage = () => {
           <PwField name="confirm" label="Confirm New Password" />
 
           <div className="flex items-center gap-3">
-            <button type="submit" disabled={submitting}
+            <button type="submit" disabled={pwSubmitting}
               className="flex items-center gap-2 px-5 py-2 text-sm border border-[var(--border)] text-[var(--text-muted)] font-medium rounded-lg hover:bg-[var(--surface)] disabled:opacity-60 disabled:cursor-not-allowed transition-colors">
-              {submitting ? <Loader2 size={13} className="animate-spin" /> : <Lock size={13} />}
-              Update Password
+              {pwSubmitting ? <Loader2 size={13} className="animate-spin" /> : <Lock size={13} />}
+              {pwSubmitting ? 'Saving...' : 'Update Password'}
             </button>
           </div>
         </form>

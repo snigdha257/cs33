@@ -100,6 +100,8 @@ const getMe = async (req, res, next) => {
         badges: user.badges,
         emailVerified: user.emailVerified,
         following: user.following,
+        followerCount: user.followerCount,
+        followingCount: user.followingCount,
         savedFAQs: user.savedFAQs,
         notifyOnAnswer: user.notifyOnAnswer,
         notifyOnComment: user.notifyOnComment,

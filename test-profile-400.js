@@ -22,12 +22,12 @@ function req(method, path, body, extraHeaders) {
 
 async function run() {
   // Login and get a real token
-  const login = await req('POST', '/api/auth/login', { email: 'lohith@gmail.com', password: 'password123' }, { 'Content-Type': 'application/json' });
+  const login = await req('POST', '/api/auth/login', { email: 'user1@test.com', password: 'password123' }, { 'Content-Type': 'application/json' });
   const token = login.body?.token;
   console.log('Token:', token ? 'got ' + token.slice(0, 20) + '...' : 'NONE');
   if (!token) { console.log('Login failed:', login.body); return; }
 
-  const uid = '6a1aafe17591e2d525880402';
+  const uid = login.body.user?.id;
 
   // Test with Authorization header (like browser would)
   const r1 = await req('GET', `/api/users/${uid}/activity`, null, { Authorization: 'Bearer ' + token });

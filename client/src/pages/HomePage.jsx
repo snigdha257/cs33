@@ -70,19 +70,19 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       {/* Hero */}
-      <section className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white py-20 px-4">
+      <section className="bg-[var(--hero)] py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Community FAQ Portal</h1>
-          <p className="text-lg text-[var(--primary)] mb-8 max-w-2xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-[var(--hero-text)]">Community FAQ Portal</h1>
+          <p className="text-lg text-[var(--text-muted)] mb-8 max-w-2xl mx-auto">
             Ask questions, share knowledge, and learn from the community. Submit your own FAQs and help others find answers.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <Link to="/faqs"
-              className="px-6 py-3 bg-[var(--card-bg)] text-[var(--primary)] font-semibold rounded-lg hover:bg-[var(--primary)]/10 transition-colors">
+              className="px-6 py-3 bg-[var(--primary)] text-white font-semibold rounded-lg hover:opacity-90 transition-opacity">
               Browse FAQs
             </Link>
             <Link to="/faqs/submit"
-              className="px-6 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-[var(--card-bg)]/10 transition-colors">
+              className="px-6 py-3 border-2 border-[var(--border)] text-[var(--hero-text)] font-semibold rounded-lg hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors">
               Ask a Question
             </Link>
           </div>

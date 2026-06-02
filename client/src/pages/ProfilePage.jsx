@@ -59,11 +59,19 @@ const ProfilePage = () => {
     questions: () => users.getUserActivity(id).then((r) => r.data.data ?? []),
     answers:   () => users.getUserAnswers(id).then((r) => {
       const raw = r.data.data;
-      return Array.isArray(raw) ? raw : (raw?.answers ?? []);
+      const arr = Array.isArray(raw) ? raw : (raw?.answers ?? []);
+      return arr.reduce((acc, a) => {
+        if (!acc.find((x) => String(x._id) === String(a._id))) acc.push(a);
+        return acc;
+      }, []);
     }),
     activity:  () => users.getUserActivity(id).then((r) => {
       const raw = r.data.data;
-      return Array.isArray(raw) ? raw : (raw?.activity ?? raw ?? []);
+      const arr = Array.isArray(raw) ? raw : (raw?.activity ?? raw ?? []);
+      return arr.reduce((acc, e) => {
+        if (!acc.find((x) => String(x._id) === String(e._id))) acc.push(e);
+        return acc;
+      }, []);
     }),
   };
   const { data: tabData = [], loading: tabLoading } = useAsync(
@@ -201,18 +209,24 @@ const ProfilePage = () => {
           </div>
 
           {/* Badges */}
-          {profile.badges?.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-[var(--border)]">
-              {profile.badges.map((b) => {
-                const colors = BADGE_COLORS[b.name] || BADGE_COLORS.contributor;
-                return (
-                  <span key={b.name} className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs rounded-full border font-medium ${colors.bg} ${colors.border} ${colors.text}`}>
-                    <Award size={12} /> {b.name.replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
-                  </span>
-                );
-              })}
-            </div>
-          )}
+          {(() => {
+            const uniqueBadges = (profile.badges || []).reduce((acc, b) => {
+              if (!acc.find((x) => x.name === b.name)) acc.push(b);
+              return acc;
+            }, []);
+            return uniqueBadges.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-[var(--border)]">
+                {uniqueBadges.map((b) => {
+                  const colors = BADGE_COLORS[b.name] || BADGE_COLORS.contributor;
+                  return (
+                    <span key={b.name} className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs rounded-full border font-medium ${colors.bg} ${colors.border} ${colors.text}`}>
+                      <Award size={12} /> {b.name.replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                    </span>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
 
         {/* ── Stats row ────────────────────────────────────────────────── */}

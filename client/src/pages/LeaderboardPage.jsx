@@ -23,7 +23,7 @@ const LeaderboardPage = () => {
 
   const board = data ?? [];
   const myRank = user
-    ? board.find((u) => u._id === user.id || u._id === user._id) ?? null
+    ? board.find((u) => String(u._id) === String(user.id) || String(u._id) === String(user._id)) ?? null
     : null;
 
   return (
@@ -50,40 +50,57 @@ const LeaderboardPage = () => {
         ) : (
           <>
             {/* Top 3 podium */}
-            {board.slice(0, 3).map((u, i) => (
-              <div key={u._id}
-                className={`relative rounded-2xl border p-5 mb-4 ${MEDAL[i].bg} ${MEDAL[i].border}`}>
-                <div className="flex items-center gap-4">
-                  <span className="text-3xl">{MEDAL[i].icon}</span>
-                  <Link to={`/profile/${String(u._id || '')}`} className="flex items-center gap-3 flex-1 hover:opacity-80 transition-opacity">
-                    <img
-                      src={u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=3b82f6&color=fff&size=48`}
-                      alt={u.name} className="w-12 h-12 rounded-full object-cover ring-2 ring-white"
-                    />
-                    <div>
-                      <p className="font-bold text-[var(--text-h)]">{u.name}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        {u.badges?.slice(0, 2).map((b, bi) => (
-                          <span key={bi} className="text-xs px-2 py-0.5 bg-[var(--card-bg)]/70 rounded-full text-[var(--text-muted)]">
-                            {b.name?.replace('_', ' ')}
+            <div className="grid grid-cols-1 gap-3 mb-6">
+              {board.slice(0, 3).map((u, i) => {
+                const isMe = user && (String(u._id) === String(user.id) || String(u._id) === String(user._id));
+                const rankLabel = ['', '1st', '2nd', '3rd'][i];
+                const size = i === 0 ? 'text-6xl' : 'text-5xl';
+                // Deduplicate badges by name (same badge shouldn't appear twice)
+                const uniqueBadges = (u.badges || []).reduce((acc, b) => {
+                  if (!acc.find((x) => x.name === b.name)) acc.push(b);
+                  return acc;
+                }, []);
+                return (
+                  <Link key={u._id} to={`/profile/${String(u._id || '')}`}
+                    className={`relative flex items-center gap-5 rounded-2xl border p-5 bg-[var(--card-bg)] hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 group ${isMe ? 'ring-2 ring-[var(--primary)]' : 'border-[var(--border)]'}`}>
+                    {/* Rank badge */}
+                    <div className={`w-16 h-16 rounded-2xl flex flex-col items-center justify-center font-bold text-white ${i === 0 ? 'bg-gradient-to-br from-amber-400 to-amber-600' : i === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-500' : 'bg-gradient-to-br from-orange-400 to-orange-600'}`}>
+                      <span className={`leading-none ${size}`}>{MEDAL[i].icon}</span>
+                    </div>
+                    {/* User info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider">{rankLabel} Place</p>
+                        {isMe && <span className="text-xs px-2 py-0.5 bg-[var(--primary)]/10 text-[var(--primary)] rounded-full font-medium">(you)</span>}
+                      </div>
+                      <p className="text-xl font-bold text-[var(--text-h)] truncate group-hover:text-[var(--primary)] transition-colors">{u.name}</p>
+                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                        {uniqueBadges.slice(0, 3).map((b, bi) => (
+                          <span key={bi} className="text-[11px] px-2 py-0.5 bg-[var(--surface)] border border-[var(--border)] text-[var(--text-muted)] rounded-full capitalize">
+                            {b.name?.replace(/_/g, ' ')}
                           </span>
                         ))}
                       </div>
                     </div>
+                    {/* Stats */}
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-3xl font-black text-[var(--primary)]">{u.reputation?.toLocaleString()}</p>
+                      <p className="text-xs text-[var(--text-muted)] mt-0.5">{u.faqCount || 0} FAQs answered</p>
+                    </div>
                   </Link>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-2xl font-bold text-[var(--primary)]">{u.reputation?.toLocaleString()}</p>
-                    <p className="text-xs text-[var(--text-muted)]">{u.faqCount || 0} FAQs</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+                );
+              })}
+            </div>
 
             {/* Ranked list 4+ */}
             <div className="bg-[var(--card-bg)] rounded-2xl border border-[var(--border)] overflow-hidden divide-y divide-gray-100">
               {board.slice(3).map((u, idx) => {
                 const rank = idx + 4;
-                const isMe = user && (u._id === user.id || u._id === user._id);
+                const isMe = user && (String(u._id) === String(user.id) || String(u._id) === String(user._id));
+                const uniqueBadges = (u.badges || []).reduce((acc, b) => {
+                  if (!acc.find((x) => x.name === b.name)) acc.push(b);
+                  return acc;
+                }, []);
                 return (
                   <Link key={u._id} to={`/profile/${String(u._id || '')}`}
                     className={`flex items-center gap-4 px-5 py-3.5 hover:bg-[var(--surface)] transition-colors ${isMe ? 'bg-[var(--primary)]/10' : ''}`}>
@@ -98,11 +115,11 @@ const LeaderboardPage = () => {
                       <p className={`text-sm font-medium truncate ${isMe ? 'text-[var(--primary)]' : 'text-[var(--text-h)]'}`}>
                         {u.name} {isMe && <span className="text-xs text-[var(--primary)]">(you)</span>}
                       </p>
-                      {u.badges?.length > 0 && (
-                        <div className="flex items-center gap-1 mt-0.5">
-                          {u.badges.slice(0, 2).map((b, bi) => (
-                            <span key={bi} className="text-[10px] px-1.5 py-0.5 bg-[var(--primary)]/10 text-[var(--primary)] rounded-full">
-                              {b.name?.replace('_', ' ')}
+                      {uniqueBadges.length > 0 && (
+                        <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+                          {uniqueBadges.slice(0, 2).map((b, bi) => (
+                            <span key={bi} className="text-[10px] px-1.5 py-0.5 bg-[var(--primary)]/10 text-[var(--primary)] rounded-full capitalize">
+                              {b.name?.replace(/_/g, ' ')}
                             </span>
                           ))}
                         </div>
@@ -117,11 +134,11 @@ const LeaderboardPage = () => {
               })}
             </div>
 
-            {/* My rank (outside top 10) */}
-            {myRank && (
+            {/* My rank (outside top 10) - only show if user not already in top 10 */}
+            {myRank && !board.slice(0, 10).some((u) => user && (String(u._id) === String(user.id) || String(u._id) === String(user._id))) && (
               <div className="mt-4 rounded-2xl border-2 border-dashed border-[var(--primary)] bg-[var(--primary)]/10 px-5 py-3.5 flex items-center gap-4">
                 <span className="w-7 text-center font-mono text-sm font-semibold text-[var(--primary)] flex-shrink-0">
-                  #{board.length + 1}+
+                  #{board.length + 1}
                 </span>
                 <img
                   src={myRank.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(myRank.name)}&background=3b82f6&color=fff&size=36`}

@@ -39,17 +39,21 @@ const NotificationsPage = () => {
   }, [socket]);
 
   const handleMarkOne = async (notif) => {
-    try { await notifApi.deleteOne(notif._id); } catch {}
-    setList((l) => l.filter((n) => n._id !== notif._id));
-    if (!notif.isRead) setUnread((n) => Math.max(0, n - 1));
+    try {
+      await notifApi.markRead(notif._id);
+      setList((l) => l.map((n) => n._id === notif._id ? { ...n, isRead: true } : n));
+      if (!notif.isRead) setUnread((n) => Math.max(0, n - 1));
+    } catch {}
     const faqId = typeof notif.faqId === 'object' ? notif.faqId._id : notif.faqId;
     if (faqId) window.location.href = `/faqs/${faqId}`;
   };
 
   const handleMarkAll = async () => {
-    try { await notifApi.markAllRead(); } catch {}
-    setList([]);
-    setUnread(0);
+    try {
+      await notifApi.markAllRead();
+      setList((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setUnread(0);
+    } catch {}
   };
 
   const filtered = filter === 'unread' ? list.filter((n) => !n.isRead) : list;

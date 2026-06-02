@@ -37,8 +37,7 @@ router.get('/:idOrUsername', optionalAuth, getProfile);
 
 // Activity & content
 router.get('/feed/activity',             isAuthenticated, getActivityFeed);
-router.get('/leaderboard', (req, res, next) => { console.log('[ROUTE] /leaderboard hit'); getLeaderboard(req, res, next); });
-router.get('/:idOrUsername/activity',    getUserActivity);
-router.get('/:idOrUsername/answers',     getUserAnswers);
+router.get('/:idOrUsername/activity',    isAuthenticated, getUserActivity);
+router.get('/:idOrUsername/answers',     isAuthenticated, getUserAnswers);
 
 module.exports = router;

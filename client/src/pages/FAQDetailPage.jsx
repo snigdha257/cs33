@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { format } from 'timeago.js';
 import {
-  ChevronUp, ChevronDown, Bookmark, BookmarkCheck, Flag, Edit2, Trash2,
+  ChevronUp, ChevronDown, Bookmark, BookmarkCheck, Flag, Trash2,
   CheckCircle, MessageSquare, Eye, AlertTriangle, X, Send,
 } from 'lucide-react';
 import { faqs, users } from '../services/api';
@@ -77,9 +77,7 @@ const AnswerCard = ({ answer, faqAuthorId, currentUser, onVote, onAccept, onDele
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const canDelete = user && (answer.author?._id === user.id || answer.author === user.id || user.role === 'moderator' || user.role === 'admin');
-  const canEdit = user && (answer.author?._id === user.id || answer.author === user.id);
-
+  const canDelete = user && (answer.author?._id === user.id || answer.author === user.id || user.role === 'admin');
   const handleComment = async () => {
     if (!commentText.trim()) return;
     setSubmitting(true);
@@ -131,16 +129,13 @@ const AnswerCard = ({ answer, faqAuthorId, currentUser, onVote, onAccept, onDele
             </div>
 
             <div className="flex items-center gap-2">
-              {user && faqAuthorId && (user.id === faqAuthorId || user._id === faqAuthorId) && !answer.isAccepted && (
+              {user && user.role === 'admin' && !answer.isAccepted && (
                 <button
                   onClick={() => onAccept(answer._id)}
                   className="flex items-center gap-1 text-xs text-[var(--success)] hover:text-[var(--success)] font-medium transition-colors"
                 >
                   <CheckCircle size={13} /> Accept
                 </button>
-              )}
-              {canEdit && (
-                <button className="text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors"><Edit2 size={13} /></button>
               )}
               {canDelete && (
                 <button onClick={() => onDelete(answer._id)} className="text-[var(--text-muted)] hover:text-[var(--error)] transition-colors">
@@ -158,7 +153,7 @@ const AnswerCard = ({ answer, faqAuthorId, currentUser, onVote, onAccept, onDele
                   key={c._id}
                   comment={c}
                   onDelete={(cid) => onDeleteComment(answer._id, cid)}
-                  canDelete={user && (c.author?._id === user.id || c.author === user.id || user.role === 'moderator' || user.role === 'admin')}
+                  canDelete={user && user.role === 'admin'}
                 />
               ))}
             </div>
@@ -326,12 +321,8 @@ const FAQDetailPage = () => {
     fetchFAQ();
   }, [safeId]);
 
-  const canEdit = user && faq && (
-    faq.author?._id === user.id ||
-    faq.author === user.id ||
-    user.role === 'moderator' ||
-    user.role === 'admin'
-  );
+  // canDelete: admin/moderator can delete a FAQ; author cannot delete once it has answers
+  const canDelete = user && (user.role === 'admin' || user.id === faq?.author || user.id === faq?.author?._id);
 
   // ── Hook: must be called unconditionally, before any early returns ──────────
   useDocumentMeta({
@@ -590,15 +581,10 @@ const FAQDetailPage = () => {
                 >
                   <Flag size={14} /> Report
                 </button>
-                {canEdit && (
-                  <>
-                    <Link to={`/faqs/${String(faq?._id || '')}/edit`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--border)] text-[var(--text-muted)] text-sm hover:bg-[var(--surface)] transition-colors">
-                      <Edit2 size={14} /> Edit
-                    </Link>
-                    <button onClick={() => { if (confirm('Delete this FAQ?')) navigate(`/faqs`); }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--error)]/30 text-[var(--error)] text-sm hover:bg-[var(--error)]/10 transition-colors">
-                      <Trash2 size={14} /> Delete
-                    </button>
-                  </>
+                {canDelete && (
+                  <button onClick={() => { if (confirm('Delete this FAQ?')) navigate(`/faqs`); }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--error)]/30 text-[var(--error)] text-sm hover:bg-[var(--error)]/10 transition-colors">
+                    <Trash2 size={14} /> Delete
+                  </button>
                 )}
               </div>
 
@@ -706,8 +692,6 @@ const FAQDetailPage = () => {
           </aside>
         )}
       </div>
-    </div>
-  );
 
       {/* Floating vote bar — mobile only */}
       {user && (
@@ -733,6 +717,8 @@ const FAQDetailPage = () => {
           </button>
         </div>
       )}
+    </div>
+  );
 };
 
 export default FAQDetailPage;

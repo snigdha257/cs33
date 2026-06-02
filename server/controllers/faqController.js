@@ -281,7 +281,7 @@ const create = async (req, res, next) => {
       tags: tags ? tags.map((t) => t.toLowerCase().trim()).slice(0, 5) : [],
       category: category.toLowerCase(),
       author: req.user._id,
-      status: 'pending',
+      status: req.user.role === 'admin' ? 'approved' : 'pending',
     });
 
     await faq.populate('author', 'name avatar reputation');
@@ -518,7 +518,14 @@ const addAnswer = async (req, res, next) => {
     const faq = await FAQ.findById(id);
     if (!faq) return next(new AppError('FAQ not found', 404));
 
-    faq.answers.push({ body, author: req.user._id });
+    const isAdminAnswer = req.user.role === 'admin';
+    faq.answers.push({ body, author: req.user._id, isAccepted: isAdminAnswer });
+    if (isAdminAnswer) {
+      // Un-accept any previously accepted answer so only one is accepted at a time
+      faq.answers.forEach((a) => {
+        if (!a._id.equals(faq.answers[faq.answers.length - 1]._id)) a.isAccepted = false;
+      });
+    }
     await faq.save();
 
     // Re-fetch with populate to properly hydrate subdocument author
@@ -638,8 +645,11 @@ const acceptAnswer = async (req, res, next) => {
     const faq = await FAQ.findById(id);
     if (!faq) return next(new AppError('FAQ not found', 404));
 
-    if (!faq.author.equals(req.user._id)) {
-      return next(new AppError('Only FAQ author can accept an answer', 403));
+    // Admin can accept any answer; non-admin FAQ author can accept answers on their own FAQ
+    const isFAQAuthor = faq.author.equals(req.user._id);
+    const isAdmin = req.user.role === 'admin';
+    if (!isFAQAuthor && !isAdmin) {
+      return next(new AppError('Only FAQ author or admin can accept an answer', 403));
     }
 
     const answer = faq.answers.id(answerId);
@@ -651,10 +661,10 @@ const acceptAnswer = async (req, res, next) => {
     });
     await faq.save();
 
-    // Award answer author +15 reputation (only if not self-accept and not suspended)
+    // Award answer author +15 reputation (only if not self-accept and not suspended; admin answers don't earn rep)
     if (!answer.author.equals(req.user._id)) {
       const answerAuthor = await User.findById(answer.author);
-      if (answerAuthor && !answerAuthor.isSuspended) {
+      if (answerAuthor && !answerAuthor.isSuspended && answerAuthor.role !== 'admin') {
         await User.findByIdAndUpdate(answer.author, { $inc: { reputation: 15 } });
         await awardBadges(answer.author);
       }

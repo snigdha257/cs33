@@ -96,8 +96,8 @@ const AnswerCard = ({ answer, faqAuthorId, currentUser, onVote, onAccept, onDele
   };
 
   return (
-    <div className={`bg-[var(--card-bg)] border rounded-lg p-5 ${answer.isAccepted ? 'border-[var(--success)] bg-[var(--success)]/10' : 'border-[var(--border)]'}`}>
-      {answer.isAccepted && (
+    <div className={`bg-[var(--card-bg)] border rounded-lg p-5 ${answer.isAccepted && !(user && user.role === 'admin' && (answer.author?._id === user.id || answer.author === user.id)) ? 'border-[var(--success)] bg-[var(--success)]/10' : 'border-[var(--border)]'}`}>
+      {answer.isAccepted && !(user && user.role === 'admin' && (answer.author?._id === user.id || answer.author === user.id)) && (
         <div className="flex items-center gap-1 text-[var(--success)] text-xs font-semibold mb-3">
           <CheckCircle size={14} /> Accepted Answer
         </div>
@@ -129,7 +129,7 @@ const AnswerCard = ({ answer, faqAuthorId, currentUser, onVote, onAccept, onDele
             </div>
 
             <div className="flex items-center gap-2">
-              {user && user.role === 'admin' && !answer.isAccepted && (
+              {user && user.role === 'admin' && !answer.isAccepted && !(faqAuthorId && (faqAuthorId === user.id || faqAuthorId === user._id)) && (
                 <button
                   onClick={() => onAccept(answer._id)}
                   className="flex items-center gap-1 text-xs text-[var(--success)] hover:text-[var(--success)] font-medium transition-colors"

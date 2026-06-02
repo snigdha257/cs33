@@ -28,7 +28,6 @@ const EditProfilePage = () => {
   const [form, setForm] = useState({ name: '', bio: '', avatar: '' });
   const [notifyOnAnswer,  setNotifyOnAnswer]  = useState(true);
   const [notifyOnComment, setNotifyOnComment] = useState(true);
-  const [passwords, setPasswords] = useState({ current: '', newPw: '', confirm: '' });
   const [showPw, setShowPw] = useState({ current: false, newPw: false, confirm: false });
   const [submitting, setSubmitting] = useState(false);
   const [pwSubmitting, setPwSubmitting] = useState(false);
@@ -72,7 +71,9 @@ const EditProfilePage = () => {
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
-    const { current, newPw, confirm } = passwords;
+    const current = e.target.current.value;
+    const newPw   = e.target.newPw.value;
+    const confirm = e.target.confirm.value;
     if (!current) { toast.error('Enter your current password'); return; }
     if (newPw.length < 8) { toast.error('New password must be at least 8 characters'); return; }
     if (newPw !== confirm) { toast.error('New passwords do not match'); return; }
@@ -81,7 +82,9 @@ const EditProfilePage = () => {
     try {
       await users.changePassword(user.id, { currentPassword: current, newPassword: newPw });
       toast.success('Password changed successfully!');
-      setPasswords({ current: '', newPw: '', confirm: '' });
+      e.target.current.value = '';
+      e.target.newPw.value   = '';
+      e.target.confirm.value = '';
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Could not change password';
       toast.error(msg);
@@ -89,25 +92,6 @@ const EditProfilePage = () => {
       setPwSubmitting(false);
     }
   };
-
-  const PwField = ({ name, label }) => (
-    <div>
-      <label className="block text-sm font-medium text-[var(--text)] mb-1.5">{label}</label>
-      <div className="relative">
-        <input
-          type={showPw[name] ? 'text' : 'password'}
-          value={passwords[name]}
-          onChange={(e) => setPasswords((p) => ({ ...p, [name]: e.target.value }))}
-          className="w-full border border-[var(--border)] rounded-lg pl-4 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-[var(--text-h)]"
-          autoComplete="new-password"
-        />
-        <button type="button" onClick={() => setShowPw((s) => ({ ...s, [name]: !s[name] }))}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-muted)]">
-          {showPw[name] ? <EyeOff size={15} /> : <Eye size={15} />}
-        </button>
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-[var(--surface)] py-10 px-4">
@@ -117,8 +101,6 @@ const EditProfilePage = () => {
         <h1 className="text-2xl font-bold text-[var(--text-h)]">Edit Profile</h1>
 
         <form onSubmit={handleSubmit} noValidate className="bg-white rounded-2xl border border-[var(--border)] p-6 space-y-6">
-
-
 
           {/* Name */}
           <div>
@@ -187,16 +169,66 @@ const EditProfilePage = () => {
           </div>
         </form>
 
-        {/* Change password */}
+        {/* Change password — uses uncontrolled inputs to avoid state-reset issue */}
         <form onSubmit={handlePasswordChange} noValidate
           className="bg-white rounded-2xl border border-[var(--border)] p-6 space-y-5">
           <h3 className="text-sm font-semibold text-[var(--text)] flex items-center gap-2">
             <Lock size={15} /> Change Password
           </h3>
 
-          <PwField name="current" label="Current Password" />
-          <PwField name="newPw"   label="New Password" />
-          <PwField name="confirm" label="Confirm New Password" />
+          {/* Current Password */}
+          <div>
+            <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Current Password</label>
+            <div className="relative">
+              <input
+                name="current"
+                type={showPw.current ? 'text' : 'password'}
+                defaultValue=""
+                className="w-full border border-[var(--border)] rounded-lg pl-4 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-[var(--text-h)]"
+                autoComplete="new-password"
+              />
+              <button type="button" onClick={() => setShowPw((s) => ({ ...s, current: !s.current }))}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-muted)]">
+                {showPw.current ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
+          </div>
+
+          {/* New Password */}
+          <div>
+            <label className="block text-sm font-medium text-[var(--text)] mb-1.5">New Password</label>
+            <div className="relative">
+              <input
+                name="newPw"
+                type={showPw.newPw ? 'text' : 'password'}
+                defaultValue=""
+                className="w-full border border-[var(--border)] rounded-lg pl-4 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-[var(--text-h)]"
+                autoComplete="new-password"
+              />
+              <button type="button" onClick={() => setShowPw((s) => ({ ...s, newPw: !s.newPw }))}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-muted)]">
+                {showPw.newPw ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
+          </div>
+
+          {/* Confirm Password */}
+          <div>
+            <label className="block text-sm font-medium text-[var(--text)] mb-1.5">Confirm New Password</label>
+            <div className="relative">
+              <input
+                name="confirm"
+                type={showPw.confirm ? 'text' : 'password'}
+                defaultValue=""
+                className="w-full border border-[var(--border)] rounded-lg pl-4 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-[var(--text-h)]"
+                autoComplete="new-password"
+              />
+              <button type="button" onClick={() => setShowPw((s) => ({ ...s, confirm: !s.confirm }))}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-muted)]">
+                {showPw.confirm ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
+          </div>
 
           <div className="flex items-center gap-3">
             <button type="submit" disabled={pwSubmitting}

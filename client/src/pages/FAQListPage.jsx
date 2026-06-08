@@ -19,10 +19,10 @@ const CategoryIcon = ({ category }) => {
 
 const StatusBadge = ({ status }) => {
   const map = {
-    pending:  { label: '⏳ Pending',  cls: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
+    pending:  { label: '⏳ Pending',  cls: 'bg-[var(--badge-pending-bg)] text-[var(--badge-pending-text)] border-[var(--badge-pending-border)]' },
     approved: { label: '✅ Approved', cls: 'bg-[var(--success)]/10 text-[var(--success)] border-[var(--success)]' },
     rejected: { label: '❌ Rejected', cls: 'bg-[var(--error)]/10 text-[var(--error)] border-[var(--error)]' },
-    flagged:  { label: '🚩 Flagged',  cls: 'bg-orange-50 text-orange-700 border-orange-200' },
+    flagged:  { label: '🚩 Flagged',  cls: 'bg-[var(--badge-flagged-bg)] text-[var(--badge-flagged-text)] border-[var(--badge-flagged-border)]' },
   };
   const b = map[status] || map.pending;
   return <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${b.cls}`}>{b.label}</span>;

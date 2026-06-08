@@ -75,7 +75,7 @@ const TagInput = ({ tags, onAdd, onRemove }) => {
 
       {/* Autocomplete dropdown */}
       {showSuggestions && filtered.length > 0 && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-[var(--border)] rounded-lg shadow-lg">
+        <div className="absolute z-10 w-full mt-1 bg-[var(--card-bg)] border border-[var(--border)] rounded-lg shadow-lg">
           {filtered.map((t) => (
             <button
               key={t}
@@ -89,7 +89,7 @@ const TagInput = ({ tags, onAdd, onRemove }) => {
         </div>
       )}
       {showSuggestions && input.length > 0 && filtered.length === 0 && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-[var(--border)] rounded-lg shadow-lg">
+        <div className="absolute z-10 w-full mt-1 bg-[var(--card-bg)] border border-[var(--border)] rounded-lg shadow-lg">
           <button type="button" onMouseDown={() => addTag(input)} className="w-full text-left px-3 py-2 text-sm text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors">
             Add "{input}" as new tag
           </button>
@@ -218,7 +218,7 @@ const SubmitFAQPage = () => {
 
             {/* Similar questions warning */}
             {similarFAQs.length > 0 && (
-              <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="mt-2 p-3 bg-[var(--badge-pending-bg)] border border-[var(--badge-pending-border)] rounded-lg">
                 <div className="flex items-start gap-2 mb-2">
                   <AlertTriangle size={15} className="text-yellow-600 flex-shrink-0 mt-0.5" />
                   <div>

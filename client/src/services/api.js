@@ -6,7 +6,6 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  console.log('[API REQUEST]', config.method?.toUpperCase(), config.url);
   // Defensive: coerce any ObjectId/object in URL path segments to string
   if (config.url) {
     config.url = config.url.replace(/\/([a-f0-9]{24})\b/g, (m, id) => `/${id}`);

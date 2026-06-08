@@ -201,7 +201,7 @@ const FAQDetailPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { socket } = useSocket();
-  console.log('[DEBUG] id from useParams:', id, typeof id);
+  
 
   // Guard: redirect to list if id is not a valid string
   useEffect(() => {
@@ -307,10 +307,7 @@ const FAQDetailPage = () => {
     const fetchFAQ = async () => {
       if (!safeId) { setError('Invalid FAQ ID'); setLoading(false); return; }
       try {
-        console.log('[DEBUG] fetchFAQ called with id:', safeId);
         const res = await faqs.getOne(safeId);
-        console.log('[DEBUG] getOne raw res.data:', JSON.stringify(res.data).slice(0, 200));
-        console.log('[DEBUG] res.data.data._id:', res.data?.data?._id);
         setFaq(res.data.data);
       } catch (err) {
         setError(err.message || 'Failed to load FAQ');
@@ -336,7 +333,7 @@ const FAQDetailPage = () => {
     if (!user) { toast.error('Login to vote'); return; }
     if (!faq?._id) { console.error('[vote] faq._id is missing'); return; }
     try {
-      console.log('[vote] id:', faq._id, '| vote:', vote);
+      
       const res = await faqs.vote(faq._id, vote);
       setFaq((prev) => prev
         ? { ...prev, votes: res.data.data.votes, voters: res.data.data.voters }
@@ -465,7 +462,7 @@ const FAQDetailPage = () => {
     setSubmittingAnswer(true);
     let isMounted = true;
     try {
-      console.log('[DEBUG] addAnswer called, faq._id:', faq._id);
+      
       const res = await faqs.addAnswer(faq._id, { body: answerBody.trim() });
       if (!isMounted) return;
       const newAnswer = res.data.data;
@@ -557,7 +554,7 @@ const FAQDetailPage = () => {
                 ))}
                 <span className="px-2.5 py-0.5 bg-[var(--primary)]/10 text-[var(--primary)] text-xs rounded-full capitalize font-medium">{faq.category}</span>
                 {faq.isCommunityWiki && (
-                  <span className="px-2.5 py-0.5 bg-purple-50 text-purple-600 text-xs rounded-full font-medium">Wiki</span>
+                  <span className="px-2.5 py-0.5 bg-[var(--badge-purple-bg)] text-[var(--badge-purple-text)] text-xs rounded-full font-medium">Wiki</span>
                 )}
               </div>
 
@@ -590,7 +587,7 @@ const FAQDetailPage = () => {
 
               {/* Report form */}
               {showReport && (
-                <form onSubmit={handleReport} className="mt-4 p-4 border border-yellow-500/30 bg-yellow-500/10 rounded-lg max-w-sm">
+                <form onSubmit={handleReport} className="mt-4 p-4 border border-[var(--badge-pending-border)] bg-[var(--badge-pending-bg)] rounded-lg max-w-sm">
                   <h4 className="font-semibold text-sm text-[var(--text)] mb-2 flex items-center gap-1"><AlertTriangle size={14} /> Report Content</h4>
                   <select
                     value={reportReason}

@@ -120,9 +120,29 @@ app.use(require('./middleware/errorHandler'));
 // ── Start: connectDB() called BEFORE server.listen() ─────────────────────────
 const startServer = async () => {
   await connectDB();
+
   server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
+
+  // ── Graceful shutdown ───────────────────────────────────────────────────────
+  const shutdown = async (signal) => {
+    console.log(`\n${signal} received — shutting down gracefully`);
+    server.close(async () => {
+      console.log('HTTP server closed');
+      await mongoose.connection.close();
+      console.log('MongoDB connection closed');
+      process.exit(0);
+    });
+    // Force exit after 10s if graceful shutdown hangs
+    setTimeout(() => {
+      console.error('Forced exit after timeout');
+      process.exit(1);
+    }, 10000);
+  };
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT',  () => shutdown('SIGINT'));
 
   setInterval(() => {
     sendWeeklyDigest().catch((err) =>

@@ -1,14 +1,12 @@
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 
-const createNotification = async ({ recipient, sender, type, faqId, message, io }) => {
+const createNotification = async ({ recipient, sender, type, faqId, message, io, userPrefs = null }) => {
   if (!recipient) return;
-
-  // FIX: recipient !== sender check — never notify yourself
   if (sender && recipient.equals(sender)) return;
 
-  // Check user notification preferences
-  const user = await User.findById(recipient);
+  // Use provided prefs if passed, otherwise fetch once (lean)
+  const user = userPrefs ?? await User.findById(recipient).select('notifyOnAnswer notifyOnComment').lean();
   if (!user) return;
 
   if (type === 'answer' && !user.notifyOnAnswer) return;

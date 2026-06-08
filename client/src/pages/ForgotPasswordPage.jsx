@@ -23,8 +23,8 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#EDE9E0] to-[#E2DED4] dark:from-slate-800 dark:to-blue-900 flex items-center justify-center p-4">
+      <div className="bg-[var(--card-bg)] rounded-2xl shadow-2xl w-full max-w-md p-8">
         {sent ? (
           <div className="text-center py-8">
             <div className="flex justify-center mb-4">

@@ -17,10 +17,10 @@ const CategoryIcon = ({ category }) => {
 
 const StatusBadge = ({ status }) => {
   const map = {
-    pending:   { label: 'Pending',   cls: 'bg-yellow-100 text-yellow-700' },
-    approved:  { label: 'Approved',  cls: 'bg-green-100 text-[var(--success)]' },
+    pending:   { label: 'Pending',   cls: 'bg-[var(--badge-pending-bg)] text-[var(--badge-pending-text)]' },
+    approved:  { label: 'Approved',  cls: 'bg-[var(--success)]/15 text-[var(--success)]' },
     rejected:  { label: 'Rejected',  cls: 'bg-[var(--error)]/10 text-[var(--error)]' },
-    flagged:   { label: 'Flagged',   cls: 'bg-orange-100 text-orange-700' },
+    flagged:   { label: 'Flagged',   cls: 'bg-[var(--badge-orange-bg)] text-[var(--badge-orange-text)]' },
   };
   const b = map[status] || map.pending;
   return <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${b.cls}`}>{b.label}</span>;

@@ -32,8 +32,8 @@ const LeaderboardPage = () => {
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-            <Trophy size={20} className="text-yellow-600" />
+          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[var(--icon-yellow-bg)]">
+            <Trophy size={20} className="text-[var(--icon-yellow-text)]" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-[var(--text-h)]">Leaderboard</h1>

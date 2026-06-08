@@ -100,7 +100,7 @@ const EditProfilePage = () => {
         {/* Header */}
         <h1 className="text-2xl font-bold text-[var(--text-h)]">Edit Profile</h1>
 
-        <form onSubmit={handleSubmit} noValidate className="bg-white rounded-2xl border border-[var(--border)] p-6 space-y-6">
+        <form onSubmit={handleSubmit} noValidate className="bg-[var(--card-bg)] rounded-2xl border border-[var(--border)] p-6 space-y-6">
 
           {/* Name */}
           <div>
@@ -171,7 +171,7 @@ const EditProfilePage = () => {
 
         {/* Change password — uses uncontrolled inputs to avoid state-reset issue */}
         <form onSubmit={handlePasswordChange} noValidate
-          className="bg-white rounded-2xl border border-[var(--border)] p-6 space-y-5">
+          className="bg-[var(--card-bg)] rounded-2xl border border-[var(--border)] p-6 space-y-5">
           <h3 className="text-sm font-semibold text-[var(--text)] flex items-center gap-2">
             <Lock size={15} /> Change Password
           </h3>

@@ -52,8 +52,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#EDE9E0] to-[#E2DED4] dark:from-slate-800 dark:to-blue-900 flex items-center justify-center p-4">
+      <div className="bg-[var(--card-bg)] rounded-2xl shadow-2xl w-full max-w-md p-8">
         <h1 className="text-3xl font-bold text-center text-[var(--text-h)] mb-2">Welcome Back</h1>
         <p className="text-center text-[var(--text-muted)] mb-8">Sign in to your account</p>
 
@@ -123,14 +123,14 @@ export default function LoginPage() {
             <div className="w-full border-t border-[var(--border)]" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="bg-white px-4 text-[var(--text-muted)]">or continue with</span>
+            <span className="bg-[var(--card-bg)] dark:bg-[var(--card-bg)] px-4 text-[var(--text-muted)]">or continue with</span>
           </div>
         </div>
 
         <button
           type="button"
           onClick={handleGoogleLogin}
-          className="w-full flex items-center justify-center gap-3 border border-[var(--border)] hover:bg-gray-50 dark:hover:bg-gray-800 text-[var(--text)] font-semibold py-3 rounded-lg transition-colors"
+          className="w-full flex items-center justify-center gap-3 border border-[var(--border)] hover:bg-gray-50 dark:hover:bg-slate-700 text-[var(--text)] font-semibold py-3 rounded-lg transition-colors"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

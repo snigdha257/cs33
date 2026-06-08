@@ -251,11 +251,11 @@ const getOne = async (req, res, next) => {
     // Fire-and-forget — don't let view increment failure affect the response
     FAQ.findByIdAndUpdate(faq._id, { $inc: { views: 1 } }).catch(() => {});
 
-    // Attach isSaved flag for authenticated users based on their savedFAQs list
+    // Attach isSaved flag — check without extra DB round-trip when req.user already loaded
     let isSaved = false;
     if (req.user) {
-      const fullUser = await User.findById(req.user._id).select('savedFAQs');
-      isSaved = fullUser?.savedFAQs?.some((sid) => sid.equals(faq._id)) ?? false;
+      const savedFAQs = req.user.savedFAQs || [];
+      isSaved = savedFAQs.some((sid) => sid.equals(faq._id));
     }
 
     return res.json({ success: true, data: { ...faq.toObject(), isSaved } });
@@ -511,8 +511,6 @@ const addAnswer = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { body } = req.body;
-    console.log('[addAnswer] id:', id, '| body:', JSON.stringify(body));
-
     if (!body) return next(new AppError('Answer body is required', 400));
 
     const faq = await FAQ.findById(id);
@@ -534,19 +532,16 @@ const addAnswer = async (req, res, next) => {
       .populate('answers.author', 'name avatar reputation');
     const newAnswer = populatedFaq.answers.id(faq.answers[faq.answers.length - 1]._id);
 
-    // Award FAQ author +5 reputation (only if answerer is not the author)
-    if (!faq.author.equals(req.user._id)) {
-      const faqAuthor = await User.findById(faq.author);
-      if (faqAuthor && !faqAuthor.isSuspended) {
-        await User.findByIdAndUpdate(faq.author, { $inc: { reputation: 5 } });
-        await awardBadges(faq.author);
-      }
-    }
-
     req.io.to(`faq:${id}`).emit('faq:newAnswer', { faqId: id, answer: newAnswer });
 
-    // In-app notification to FAQ author
+    // Award + notify FAQ author — only if answerer is not the author
     if (!faq.author.equals(req.user._id)) {
+      await User.findByIdAndUpdate(faq.author, { $inc: { reputation: 5 } });
+      await awardBadges(faq.author);
+
+      // Fetch once, reuse for notification + email
+      const faqAuthor = await User.findById(faq.author).lean();
+
       await createNotification({
         recipient: faq.author,
         sender: req.user._id,
@@ -554,11 +549,22 @@ const addAnswer = async (req, res, next) => {
         faqId: faq._id,
         message: `${req.user.name} answered your FAQ: "${faq.question}"`,
         io: req.io,
+        userPrefs: faqAuthor,
       });
-    }
 
-    // Email notification to FAQ author (opt-in)
-    const faqAuthor = await User.findById(faq.author);
+      if (faqAuthor?.notifyOnAnswer !== false && faqAuthor?.email && faqAuthor?.emailVerified) {
+        sendEmail({
+          to:      faqAuthor.email,
+          subject: `New answer on: "${faq.question}"`,
+          html:    newAnswerEmail({
+            userName:       faqAuthor.name,
+            questionTitle:  faq.question,
+            answerPreview:  body,
+            faqUrl:         `${process.env.CLIENT_URL || 'http://localhost:5173'}/faqs/${faq._id}`,
+          }),
+        }).catch((err) => console.error('Failed to send new-answer email:', err.message));
+      }
+    }
     if (faqAuthor?.notifyOnAnswer !== false && faqAuthor?.email && faqAuthor?.emailVerified) {
       sendEmail({
         to:      faqAuthor.email,
@@ -602,9 +608,9 @@ const updateAnswer = async (req, res, next) => {
     answer.body = body;
     await faq.save();
 
-    const updatedAnswer = await FAQ.findById(id)
+    const updatedAnswer = await FAQ.findOne({ 'answers._id': answerId })
       .populate('answers.author', 'name avatar reputation')
-      .then(f => f.answers.id(answerId));
+      .then((faq) => faq?.answers.id(answerId));
 
     return res.json({ success: true, data: updatedAnswer });
   } catch (err) {
@@ -715,10 +721,12 @@ const addComment = async (req, res, next) => {
 
     // Notify content author
     if (!targetAuthor.equals(req.user._id)) {
+      const targetUserPrefs = await User.findById(targetAuthor).select('notifyOnAnswer notifyOnComment').lean();
       await createNotification({
         recipient: targetAuthor,
         sender: req.user._id,
         type: 'comment',
+        userPrefs: targetUserPrefs,
         faqId: faq._id,
         message: `${req.user.name} commented on your ${answerId ? 'answer' : 'FAQ'}: "${faq.question}"`,
         io: req.io,
@@ -876,7 +884,8 @@ const search = async (req, res, next) => {
     )
       .sort({ score: { $meta: 'textScore' } })
       .limit(5)
-      .select('_id question slug');
+      .select('_id question slug')
+      .lean();
 
     return res.json({ success: true, data: results });
   } catch (err) {
@@ -898,13 +907,13 @@ const getTrending = async (req, res, next) => {
       createdAt: { $gte: sevenDaysAgo },
     })
       .populate('author', 'name avatar')
-      .select('question votes views answers createdAt author');
+      .select('question votes views answers createdAt author')
+      .lean();
 
     const scored = faqs.map((f) => {
       const hoursOld = (now - new Date(f.createdAt).getTime()) / 3600000;
-      // Score = (votes*3 + views*2 + answers*1) with gentle time decay — newer content ranks higher
       const hotScore = (f.votes * 3 + f.views * 2 + f.answers.length) / Math.pow(hoursOld + 2, 1.5);
-      return { ...f.toObject(), hotScore };
+      return { ...f, hotScore };
     });
 
     scored.sort((a, b) => b.hotScore - a.hotScore);

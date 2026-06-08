@@ -14,11 +14,11 @@ import Spinner from '../components/common/Spinner';
 import EmptyState from '../components/common/EmptyState';
 
 const BADGE_COLORS = {
-  first_step:  { bg: 'bg-orange-50',   border: 'border-orange-200',  text: 'text-orange-700' },
-  contributor: { bg: 'bg-[var(--primary)]/10',     border: 'border-[var(--primary)]',    text: 'text-[var(--primary)]' },
-  veteran:     { bg: 'bg-purple-50',   border: 'border-purple-200',  text: 'text-purple-700' },
-  expert:      { bg: 'bg-indigo-50',   border: 'border-indigo-200',  text: 'text-indigo-700' },
-  legend:      { bg: 'bg-yellow-50',   border: 'border-yellow-200',  text: 'text-yellow-700' },
+  first_step:  { bg: 'bg-[var(--badge-orange-bg)]',   border: 'border-[var(--badge-orange-border)]',  text: 'text-[var(--badge-orange-text)]' },
+  contributor: { bg: 'bg-[var(--primary)]/10',        border: 'border-[var(--primary)]',               text: 'text-[var(--primary)]' },
+  veteran:     { bg: 'bg-[var(--badge-purple-bg)]',   border: 'border-[var(--badge-purple-border)]',   text: 'text-[var(--badge-purple-text)]' },
+  expert:      { bg: 'bg-[var(--badge-blue-bg)]',     border: 'border-[var(--badge-blue-border)]',     text: 'text-[var(--badge-blue-text)]' },
+  legend:      { bg: 'bg-[var(--badge-pending-bg)]',   border: 'border-[var(--badge-pending-border)]',   text: 'text-[var(--badge-pending-text)]' },
 };
 
 const MEDAL_COLORS = { 0: 'text-yellow-500', 1: 'text-[var(--text-muted)]', 2: 'text-amber-600' };
@@ -279,7 +279,7 @@ const ProfilePage = () => {
                           {faq.category && <span className="capitalize">in {faq.category}</span>}
                           {faq.status && faq.status !== 'approved' && (
                             <span className={`px-1.5 py-0.5 text-xs rounded-full capitalize ${
-                              faq.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                              faq.status === 'pending' ? 'bg-[var(--badge-pending-bg)] text-[var(--badge-pending-text)]' :
                               faq.status === 'closed' ? 'bg-[var(--error)]/10 text-[var(--error)]' : 'bg-[var(--surface)] text-[var(--text-muted)]'
                             }`}>{faq.status}</span>
                           )}

@@ -40,8 +40,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#EDE9E0] to-[#E2DED4] dark:from-slate-800 dark:to-blue-900 flex items-center justify-center p-4">
+      <div className="bg-[var(--card-bg)] rounded-2xl shadow-2xl w-full max-w-md p-8">
         <h1 className="text-3xl font-bold text-center text-[var(--text-h)] mb-2">Create Account</h1>
         <p className="text-center text-[var(--text-muted)] mb-8">Join us today</p>
 

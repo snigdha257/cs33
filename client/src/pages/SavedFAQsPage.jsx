@@ -46,8 +46,8 @@ const SavedFAQsPage = () => {
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-            <BookmarkCheck size={20} className="text-indigo-600" />
+          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[var(--icon-blue-bg)]">
+            <BookmarkCheck size={20} className="text-[var(--icon-blue-text)]" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-[var(--text-h)]">Saved FAQs</h1>
@@ -58,7 +58,7 @@ const SavedFAQsPage = () => {
         {loading ? (
           <div className="grid gap-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-28 bg-white rounded-xl animate-pulse border border-[var(--border)]" />
+              <div key={i} className="h-28 bg-[var(--card-bg)] rounded-xl animate-pulse border border-[var(--border)]" />
             ))}
           </div>
         ) : faqs.length === 0 ? (
@@ -88,7 +88,7 @@ const SavedFAQsPage = () => {
 
               return (
                 <div key={id}
-                  className="bg-white rounded-xl border border-[var(--border)] p-5 hover:shadow-sm transition-all group">
+                  className="bg-[var(--card-bg)] rounded-xl border border-[var(--border)] p-5 hover:shadow-md transition-all group">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1.5 flex-wrap">

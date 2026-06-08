@@ -12,16 +12,11 @@ const getProfile = async (req, res, next) => {
 
     if (!user) return next(new AppError('User not found', 404));
 
-    const [faqs, answerCount] = await Promise.all([
-      FAQ.find({ author: user._id }).sort({ createdAt: -1 }).limit(20).select('question tags votes createdAt status answerCount isPinned'),
+    const [faqs, answerCount, acceptedCount] = await Promise.all([
+      FAQ.find({ author: user._id }).sort({ createdAt: -1 }).limit(20).select('question tags votes createdAt status isPinned').lean(),
       FAQ.countDocuments({ 'answers.author': user._id, status: 'approved' }),
+      FAQ.countDocuments({ 'answers.author': user._id, 'answers.isAccepted': true, status: 'approved' }),
     ]);
-
-    const acceptedCount = await FAQ.countDocuments({
-      'answers.author': user._id,
-      'answers.isAccepted': true,
-      status: 'approved',
-    });
 
     // Check if current user already follows this profile user
     let isFollowing = false;
@@ -113,14 +108,17 @@ const followUser = async (req, res, next) => {
     const targetUser = await User.findById(id);
     if (!targetUser) return next(new AppError('User not found', 404));
 
-    if (req.user.following.map((fid) => fid.toString()).includes(id)) {
+    // Conditional atomic update — only matches if NOT already following
+    // This avoids the race condition and prevents double-count
+    const followingAlready = req.user.following?.some((fid) => fid.equals(id));
+    if (followingAlready) {
       return res.json({ success: true, message: 'Already following' });
     }
 
-    req.user.following.push(id);
-    req.user.followingCount = (req.user.followingCount || 0) + 1;
-    targetUser.followerCount = (targetUser.followerCount || 0) + 1;
-    await Promise.all([req.user.save(), targetUser.save()]);
+    await Promise.all([
+      User.findByIdAndUpdate(req.user._id, { $addToSet: { following: id } }),
+      User.findByIdAndUpdate(id,        { $inc:  { followerCount: 1 } }),
+    ]);
 
     return res.json({ success: true, message: 'User followed' });
   } catch (err) {
@@ -135,13 +133,15 @@ const unfollowUser = async (req, res, next) => {
     const targetUser = await User.findById(id);
     if (!targetUser) return next(new AppError('User not found', 404));
 
-    if (!req.user.following.map((fid) => fid.toString()).includes(id)) {
+    if (!req.user.following?.some((fid) => fid.toString() === id)) {
       return next(new AppError('Not following this user', 400));
     }
-    req.user.following = req.user.following.filter((uid) => uid.toString() !== id);
-    req.user.followingCount = Math.max(0, (req.user.followingCount || 0) - 1);
-    targetUser.followerCount = Math.max(0, (targetUser.followerCount || 0) - 1);
-    await Promise.all([req.user.save(), targetUser.save()]);
+
+    // Atomic — $pull removes without needing to re-save full document
+    await Promise.all([
+      User.findByIdAndUpdate(req.user._id, { $pull: { following: id } }),
+      User.findByIdAndUpdate(id,        { $inc:  { followerCount: -1 } }),
+    ]);
 
     return res.json({ success: true, message: 'User unfollowed' });
   } catch (err) {
@@ -176,7 +176,8 @@ const getSavedFAQs = async (req, res, next) => {
   try {
     const faqs = await FAQ.find({ _id: { $in: req.user.savedFAQs }, status: 'approved' })
       .sort({ createdAt: -1 })
-      .select('question tags votes createdAt author views answers category answerCount isAccepted status');
+      .select('question tags votes createdAt author views answers category isAccepted status')
+      .lean();
 
     // Populate author and category for proper display; skip category if invalid refs exist
     try {
@@ -209,6 +210,8 @@ const getActivityFeed = async (req, res, next) => {
     })
       .sort({ createdAt: -1 })
       .limit(20)
+      .select('question votes answerCount category status createdAt')
+      .lean()
       .populate('author', 'name avatar');
 
     return res.json({ success: true, data: faqs });
@@ -225,26 +228,38 @@ const getUserAnswers = async (req, res, next) => {
     }).select('_id');
     if (!user) return next(new AppError('User not found', 404));
 
-    const faqs = await FAQ.find(
-      { 'answers.author': user._id, status: 'approved' },
-      { question: 1, answers: 1, votes: 1, answerCount: 1 }
-    )
-      .sort({ createdAt: -1 })
-      .populate('answers.author', 'name avatar reputation');
-
-    const answers = faqs.flatMap((f) =>
-      f.answers
-        .filter((a) => a.author && a.author._id.equals(user._id))
-        .map((a) => ({
-          _id: a._id,
-          body: a.body,
-          votes: a.votes,
-          isAccepted: a.isAccepted,
-          createdAt: a.createdAt,
-          faq: { _id: f._id, question: f.question, votes: f.votes, answerCount: f.answerCount },
-          author: a.author,
-        }))
-    );
+    const answers = await FAQ.aggregate([
+      { $match: { 'answers.author': user._id, status: 'approved' } },
+      { $unwind: '$answers' },
+      { $match: { 'answers.author': user._id } },
+      { $sort: { 'answers.createdAt': -1 } },
+      { $limit: 20 },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'answers.author',
+          foreignField: '_id',
+          pipeline: [{ $project: { name: 1, avatar: 1, reputation: 1 } }],
+          as: 'answers.authorPop',
+        },
+      },
+      {
+        $addFields: {
+          'answers.author': { $arrayElemAt: ['$answers.authorPop', 0] },
+        },
+      },
+      {
+        $project: {
+          _id:            '$answers._id',
+          body:           '$answers.body',
+          votes:          '$answers.votes',
+          isAccepted:     '$answers.isAccepted',
+          createdAt:      '$answers.createdAt',
+          faq: { _id: '$_id', question: '$question', votes: '$votes', answerCount: { $size: '$answers' } },
+          author:         '$answers.author',
+        },
+      },
+    ]);
 
     return res.json({ success: true, data: answers });
   } catch (err) {
@@ -264,11 +279,13 @@ const getUserActivity = async (req, res, next) => {
       FAQ.find({ author: user._id })
         .sort({ createdAt: -1 })
         .limit(20)
-        .select('question votes answerCount category status createdAt'),
+        .select('question votes answerCount category status createdAt')
+        .lean(),
       FAQ.find({ 'answers.author': user._id, status: 'approved' })
         .sort({ 'answers.createdAt': -1 })
         .limit(20)
-        .select('question answers.createdAt answers.author'),
+        .select('question answers.createdAt answers.author')
+        .lean(),
     ]);
 
     const activity = [
@@ -307,28 +324,40 @@ const getUserActivity = async (req, res, next) => {
 };
 
 const getLeaderboard = async (req, res, next) => {
-  console.log('[DEBUG] getLeaderboard called for path:', req.originalUrl);
   try {
-    const topUsers = await User.find({ role: { $in: ['user'] } })
-      .sort({ reputation: -1 })
-      .limit(10)
-      .select('name avatar reputation badges');
+    // Single aggregation — join with FAQ counts in one DB round-trip (no N+1)
+    const topUsers = await User.aggregate([
+      { $match: { role: 'user' } },
+      { $sort: { reputation: -1 } },
+      { $limit: 10 },
+      {
+        $lookup: {
+          from: 'faqs',
+          let: { userId: '$_id' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$author', '$$userId'] }, status: 'approved' } },
+            { $count: 'faqCount' },
+          ],
+          as: 'faqData',
+        },
+      },
+      {
+        $addFields: {
+          faqCount: { $ifNull: [{ $arrayElemAt: ['$faqData.faqCount', 0] }, 0] },
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          avatar: 1,
+          reputation: 1,
+          badges: 1,
+          faqCount: 1,
+        },
+      },
+    ]);
 
-    const enriched = await Promise.all(
-      topUsers.map(async (user) => {
-        const faqCount = await FAQ.countDocuments({ author: user._id, status: 'approved' });
-        return {
-          _id: user._id,
-          name: user.name,
-          avatar: user.avatar,
-          reputation: user.reputation,
-          badges: user.badges,
-          faqCount,
-        };
-      })
-    );
-
-    return res.json({ success: true, data: enriched });
+    return res.json({ success: true, data: topUsers });
   } catch (err) {
     return next(err);
   }

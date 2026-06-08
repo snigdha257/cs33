@@ -9,7 +9,7 @@ const badgeThresholds = [
 ];
 
 const awardBadges = async (userId) => {
-  const user = await User.findById(userId);
+  const user = await User.findById(userId).select('reputation badges').lean();
   if (!user) return;
 
   const reputation = user.reputation || 0;

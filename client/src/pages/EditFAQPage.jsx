@@ -73,7 +73,7 @@ const TagInput = ({ tags, onAdd, onRemove }) => {
         )}
       </div>
       {suggestions && filtered.length > 0 && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-[var(--border)] rounded-lg shadow-lg">
+        <div className="absolute z-10 w-full mt-1 bg-[var(--card-bg)] border border-[var(--border)] rounded-lg shadow-lg">
           {filtered.map((t) => (
             <button key={t} type="button" onMouseDown={() => addTag(t)}
               className="w-full text-left px-3 py-2 text-sm text-[var(--text)] hover:bg-[var(--primary)]/10 transition-colors">{t}</button>
@@ -202,8 +202,8 @@ const EditFAQPage = () => {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-            <Edit2 size={20} className="text-purple-600" />
+          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[var(--icon-purple-bg)]">
+            <Edit2 size={20} className="text-[var(--icon-purple-text)]" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-[var(--text-h)]">Edit FAQ</h1>

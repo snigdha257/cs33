@@ -14,7 +14,7 @@ const RejectModal = ({ faq, onConfirm, onCancel }) => {
   const [reason, setReason] = useState('');
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+      <div className="bg-[var(--card-bg)] rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
         <h3 className="text-lg font-bold text-[var(--text-h)] mb-1">Reject FAQ</h3>
         <p className="text-sm text-[var(--text-muted)] mb-4">"{faq?.question || 'this FAQ'}"</p>
         <label className="block text-sm font-medium text-[var(--text)] mb-1.5">
@@ -83,7 +83,7 @@ const ActionModal = ({ report, onAction, onCancel }) => {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+      <div className="bg-[var(--card-bg)] rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
         <h3 className="text-lg font-bold text-[var(--text-h)] mb-1">Take Action</h3>
         <p className="text-sm text-[var(--text-muted)] mb-1">
           Report: <span className="uppercase text-xs font-bold">{report.reason}</span>
@@ -162,7 +162,7 @@ const FAQRow = ({ faq, onApprove, onReject, onUnflag, variant = 'pending' }) => 
 
   return (
     <>
-      <div className="bg-white border border-[var(--border)] rounded-xl p-4 hover:shadow-sm transition-shadow">
+      <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-xl p-4 hover:shadow-sm transition-shadow">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             <Link to={`/faqs/${String(faq._id || '')}`} target="_blank"
@@ -241,15 +241,15 @@ const ReportRow = ({ report, onAction, onDismiss }) => {
 
   const REASON_COLORS = {
     spam:        'bg-[var(--surface)] text-[var(--text)]',
-    inappropriate: 'bg-orange-100 text-orange-700',
+    inappropriate: 'bg-[var(--badge-orange-bg)] text-[var(--badge-orange-text)]',
     duplicate:   'bg-[var(--primary)]/10 text-[var(--primary)]',
-    off_topic:   'bg-[var(--accent)]/10 text-purple-700',
+    off_topic:   'bg-[var(--badge-purple-bg)] text-[var(--badge-purple-text)]',
     other:       'bg-[var(--surface)] text-[var(--text-muted)]',
   };
 
   return (
     <>
-      <div className="bg-white border border-[var(--border)] rounded-xl p-4 hover:shadow-sm transition-shadow">
+      <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-xl p-4 hover:shadow-sm transition-shadow">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 mb-1.5">
@@ -384,8 +384,8 @@ const ModQueuePage = () => {
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-            <Shield size={20} className="text-orange-600" />
+          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[var(--icon-yellow-bg)]">
+            <Shield size={20} className="text-[var(--icon-yellow-text)]" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-[var(--text-h)]">Moderation Queue</h1>
@@ -394,7 +394,7 @@ const ModQueuePage = () => {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-xl border border-[var(--border)] overflow-hidden">
+        <div className="bg-[var(--card-bg)] rounded-xl border border-[var(--border)] overflow-hidden">
           <div className="flex border-b border-[var(--border)]">
             {TABS.map(({ key, label, icon: Icon, count }) => (
               <button

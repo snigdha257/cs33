@@ -36,8 +36,8 @@ const StatCard = ({ icon: Icon, label, value, color = 'blue', subtitle }) => (
   <div className="bg-[var(--bg)] rounded-xl border border-[var(--border)] p-4 sm:p-5">
     <div className="flex items-center justify-between mb-3">
       <span className="text-xs sm:text-sm text-[var(--text-muted)] font-medium">{label}</span>
-      <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-${color}-50`}>
-        <Icon size={16} className={`text-${color}-600`} />
+      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${color === 'yellow' ? 'bg-[var(--icon-yellow-bg)]' : color === 'red' ? 'bg-[var(--icon-red-bg)]' : color === 'green' ? 'bg-[var(--icon-green-bg)]' : color === 'purple' ? 'bg-[var(--icon-purple-bg)]' : 'bg-[var(--icon-blue-bg)]'}`}>
+        <Icon size={16} className={color === 'yellow' ? 'text-[var(--icon-yellow-text)]' : color === 'red' ? 'text-[var(--icon-red-text)]' : color === 'green' ? 'text-[var(--icon-green-text)]' : color === 'purple' ? 'text-[var(--icon-purple-text)]' : 'text-[var(--icon-blue-text)]'} />
       </div>
     </div>
     <p className="text-2xl sm:text-3xl font-bold text-[var(--text-h)]">{value?.toLocaleString() ?? '—'}</p>
@@ -256,8 +256,8 @@ const AdminDashboardPage = () => {
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-            <LayoutDashboard size={20} className="text-indigo-600" />
+          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[var(--icon-blue-bg)]">
+            <LayoutDashboard size={20} className="text-[var(--icon-blue-text)]" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-[var(--text-h)]">Admin Dashboard</h1>
@@ -288,7 +288,7 @@ const AdminDashboardPage = () => {
             <AlertTriangle size={16} className="text-yellow-500" />
             Pending Approval
             {pendingFAQs.length > 0 && (
-              <span className="ml-2 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">
+              <span className="ml-2 px-2 py-0.5 bg-[var(--badge-pending-bg)] text-[var(--badge-pending-text)] text-xs font-bold rounded-full">
                 {pendingFAQs.length}
               </span>
             )}
@@ -438,7 +438,7 @@ const AdminDashboardPage = () => {
                             ) : (
                               <button
                                 onClick={() => handleSuspend(u._id)}
-                                className="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+                                className="p-1.5 text-[var(--icon-yellow-text)] hover:bg-[var(--icon-yellow-bg)] rounded-lg transition-colors"
                                 title="Suspend"
                               >
                                 <Ban size={14} />
